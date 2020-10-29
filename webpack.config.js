@@ -2,7 +2,7 @@ const path = require("path");
 const webpack = require("webpack");
 
 module.exports = {
-  entry: "./website/src/index.js",
+  entry: "./website/client/src/index.js",
   mode: "development",
   module: {
     rules: [
@@ -20,12 +20,12 @@ module.exports = {
   },
   resolve: { extensions: ["*", ".js", ".jsx"] },
   output: {
-    path: path.resolve(__dirname, "website/dist/"),
+    path: path.resolve(__dirname, "website/client/dist/"),
     publicPath: "/dist/",
     filename: "bundle.js",
   },
   devServer: {
-    contentBase: path.join(__dirname, "website/public/"),
+    contentBase: path.join(__dirname, "website/client/public/"),
     port: 3000,
     publicPath: "http://localhost:3000/dist/",
     hotOnly: false,
