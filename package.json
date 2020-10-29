@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack-dev-server --mode development && npm run open",
-    "open" : "concurrently \"http-server -a localhost -p 3000\" \"open http://localhost:3000/dist\""
+    "open": "concurrently \"http-server -a localhost -p 3000\" \"open http://localhost:3000/dist\""
   },
   "repository": {
     "type": "git",
@@ -28,6 +28,7 @@
     "css-loader": "^1.0.0",
     "express": "^4.17.1",
     "http-server": "^0.12.3",
+    "node": "^15.0.1",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "style-loader": "^0.23.0",
@@ -37,5 +38,6 @@
   },
   "dependencies": {
     "react-hot-loader": "^4.3.11"
-  }
+  },
+  "proxy": "http://localhost:8080"
 }

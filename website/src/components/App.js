@@ -1,10 +1,13 @@
-import React, { Component } from "react";
-import "../style/App.css";
+import React from "react";
+// import "../style/App.css";
+import NavBar from "./NavBar.js"
+import MainContent from "./MainContent"
 
 const App = (props) => {
   return (
     <div className="App">
-      <h1> Hello there. </h1>
+      <NavBar />
+      <MainContent />
     </div>
   );
 };

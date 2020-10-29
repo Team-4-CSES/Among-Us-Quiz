@@ -1,0 +1,15 @@
+.navBar {
+  display: flex;
+  width: stretch;
+  background-color: hsl(225, 50%, 15%);
+  height: 4em;
+  align-items: center;
+  padding: 0em 2em;
+}
+
+a {
+  font-family: sans-serif;
+  font-size: 1em;
+  color: white;
+  padding: 1em;
+}
