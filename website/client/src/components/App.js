@@ -18,7 +18,7 @@ const App = (props) => {
 
   return (
     <div className="App">
-      <p className = "App-intro">{apiResponse}</p>
+      <p className="App-intro">{apiResponse}</p>
       <NavBar />
       <MainContent />
     </div>
