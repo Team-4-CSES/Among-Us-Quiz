@@ -1,0 +1,4 @@
+This bot:
+1. Interprets morse code
+2. Turns spiderman pics into miles morales pics
+3. Responds to "Hello There" with General Kenobi
