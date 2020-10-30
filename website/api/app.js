@@ -10,6 +10,7 @@ var usersRouter = require("./routes/users");
 var testAPIRouter = require("./routes/testAPI");
 
 var db = require("./DB");
+var quizRouter = require('./routes/quiz-router');
 
 var app = express();
 var cors = require("cors");
@@ -29,8 +30,9 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/testAPI", testAPIRouter);
+app.use('/api', quizRouter);
 
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.on("error", console.error.bind(console, "MongoDB connection error:"));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
