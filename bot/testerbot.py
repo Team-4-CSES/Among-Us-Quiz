@@ -20,6 +20,7 @@ async def on_member_join(member):
 @client.command()
 async def ping(ctx):
     await ctx.send('Pong!')
+#hello
 
 
 client.run('NzY4Mjg3MTgzMzY2MTI3NjY2.X4-RMg.sHXghTn0SIp6ubkrHGJz_SgFQ1s')
