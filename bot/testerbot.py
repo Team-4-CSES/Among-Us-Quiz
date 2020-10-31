@@ -14,6 +14,13 @@ async def on_connect():
 async def on_ready():
     print('Bot is ready')
 
+client = discord.Client()
+
+#Lets us see who is playing
+@client.event
+async def on_ready():
+    print(f'{client.user.name} has connected to Discord!')
+
 @client.event
 async def on_member_join(member):
     print('{member} has joined a server.')
@@ -29,6 +36,19 @@ async def question(ctx):
         for row in csv_reader:
             await ctx.send(','.join(row))
 
+#Stores questions and answers in dictionary
+#quizdict = { "q1":"ans1" , "q2":"ans2" }
 
+#Reads the csv url and sorts data into chart?
+#url='csv url'
+#quizdata=pd.read_csv(url)
+#quizdata
+
+#Reads csv through file opposed to url
+#import csv
+#with open('quiz.csv', newline='') as q:
+ #   reader = csv.reader(q)
+  #  for row in reader:
+   #     print(row)
 
 client.run('NzY4Mjg3MTgzMzY2MTI3NjY2.X4-RMg.sHXghTn0SIp6ubkrHGJz_SgFQ1s')
