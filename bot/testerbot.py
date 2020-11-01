@@ -51,7 +51,7 @@ async def on_message(message):
     content = message.content
     ctx = message.channel
     file = message.attachments
-    if file[0].filename.endswith('.csv'):
+    if len(file)>0 and file[0].filename.endswith('.csv'):
         await file[0].save('quiz.csv')
         with open('quiz.csv', newline='') as q:
             reader = csv.reader(q)
