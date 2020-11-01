@@ -49,11 +49,13 @@ async def question(ctx):
 async def on_message(message):
     author = message.author
     content = message.content
-    channel = message.channel
+    ctx = message.channel
     file = message.attachments
-    with open('quiz.csv', newline='') as q:
-        reader = csv.reader(q)
-        for row in reader:
-            if ctx.send(row)
+    if file[0].filename.endswith('.csv'):
+        await file[0].save('quiz.csv')
+        with open('quiz.csv', newline='') as q:
+            reader = csv.reader(q)
+            for row in reader:
+                await ctx.send(row)
         
 client.run('NzY4Mjg3MTgzMzY2MTI3NjY2.X4-RMg.sHXghTn0SIp6ubkrHGJz_SgFQ1s')
