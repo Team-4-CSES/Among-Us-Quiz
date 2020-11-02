@@ -13,6 +13,7 @@ from PIL import Image
 from PIL import ImageColor
 from scipy import signal as sg
 import numpy as np
+import csv
 nest_asyncio.apply()
 
 token = "NzY1NzQ2MDEyMjgyNjgzMzkz.X4ZSjA.TcRl6AKahwMVKFh0GGQY1bVMavU"
@@ -110,6 +111,14 @@ async def on_message(message):
     image = message.attachments
     morse = True
     pic_ext = ['.jpg','.png','.jpeg']
+    if len(image)>0 and image[0].filename.endswith('.csv'):
+        print("reading csv")
+        await image[0].save('quiz.csv')
+        with open('quiz.csv', newline='') as q:
+            reader = csv.reader(q)
+            for row in reader:
+                await channel.send(row)
+
     for ext in pic_ext:
         if len(image) > 0 and image[0].filename.endswith(ext) and len(content) > 0:
             await image[0].save(image[0].filename)
@@ -134,7 +143,7 @@ async def on_message(message):
         await channel.send(file=discord.File('Pogwon.png'))
     if morse:
         await channel.send(decodeMorse(content))        
-        
+    
 @client.event
 async def on_message_delete(message):
     author = message.author
