@@ -1,12 +1,9 @@
+import csv
 import discord
 import pandas as pd
-import random
-import csv
-
-
 from discord.ext import commands
 
-client = commands.Bot(command_prefix="--")
+client = commands.Bot(command_prefix="!")
 
 # validquiztypes = ["fitb", "mc", "tf"]
 # validfiletypes = ["url", "csv", "excel", "xls"]
@@ -14,19 +11,18 @@ client = commands.Bot(command_prefix="--")
 @client.command()
 async def upload(ctx, filetype, quiztype):
     if (filetype == "csv" and quiztype == "tf"):
-        await ctx.send("Please upload your True/False .CSV file")
+        await ctx.send("Please upload your True/False .CSV file.")
 
     if (filetype == "csv" and quiztype == "mc"):
-        await ctx.send("Please upload your Multiple Choice .CSV file")
+        await ctx.send("Please upload your Multiple Choice .CSV file.")
 
     if (filetype == "csv" and quiztype == "fitb"):
-        await ctx.send("Please upload your Fill in the Blank .CSV file")
+        await ctx.send("Please upload your Fill in the Blank .CSV file.")
 
 
 @client.event
 async def on_ready():
     print("Test Bot is ready")
-
 
 @client.event
 async def on_message(message):
