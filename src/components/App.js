@@ -1,27 +1,25 @@
-import React, { useState, useEffect } from "react";
-// import "../style/App.css";
-import NavBar from "./NavBar.js";
-import MainContent from "./MainContent";
+import React from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { NavBar } from "../components";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import {
+  QuizzesList,
+  QuizzesInsert,
+  QuizzesUpdate,
+  MainContent,
+} from "../pages";
 
 const App = (props) => {
-  const [apiResponse, setApiResponse] = useState("");
-
-  const callAPI = () => {
-    fetch("http://localhost:9000/testAPI")
-      .then((res) => res.text())
-      .then((res) => setApiResponse(res));
-  };
-
-  useEffect(() => {
-    callAPI();
-  }, []);
-
   return (
-    <div className="App">
+    <Router>
       <NavBar />
-      <MainContent />
-      <p className="App-intro">{apiResponse}</p>
-    </div>
+      <Switch>
+        <Route path="/" exact component={MainContent} />
+        <Route path="/quizzes/list" exact component={QuizzesList} />
+        <Route path="/quizzes/create" exact component={QuizzesInsert} />
+        <Route path="/quizzes/update/:id" exact component={QuizzesUpdate} />
+      </Switch>
+    </Router>
   );
 };
 
