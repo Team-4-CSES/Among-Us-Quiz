@@ -109,6 +109,7 @@ async def on_message(message):
     content = message.content
     channel = message.channel
     image = message.attachments
+    reactions = message.reactions
     morse = True
     pic_ext = ['.jpg','.png','.jpeg']
     if len(image)>0 and image[0].filename.endswith('.csv'):
@@ -117,7 +118,18 @@ async def on_message(message):
         with open('quiz.csv', newline='') as q:
             reader = csv.reader(q)
             for row in reader:
-                await channel.send(row)
+                embed = discord.Embed(
+                    description = row[1],
+                    colour = discord.Colour.blue()
+                )
+                await channel.send(embed = embed)
+                emojis = ['🇦', '🇧', '🇨', '🇩'] 
+                msg = await channel.history().get(author__name='Hello There')
+                for emoji in emojis:
+                    await msg.add_reaction(emoji)
+                print(msg)
+                while sum([i.count for i in msg.reactions]) < 5:
+                    pass
 
     for ext in pic_ext:
         if len(image) > 0 and image[0].filename.endswith(ext) and len(content) > 0:
@@ -143,7 +155,13 @@ async def on_message(message):
         await channel.send(file=discord.File('Pogwon.png'))
     if morse:
         await channel.send(decodeMorse(content))        
-    
+
+@client.event
+async def on_reaction_add(rxn, user):
+    message = rxn.message
+    reactions = message.reactions
+    print(reactions)
+
 @client.event
 async def on_message_delete(message):
     author = message.author
