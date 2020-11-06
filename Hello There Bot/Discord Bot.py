@@ -117,8 +117,10 @@ async def on_message(message):
         await image[0].save('quiz.csv')
         with open('quiz.csv', newline='') as q:
             reader = csv.reader(q)
+            i = 1
             for row in reader:
                 embed = discord.Embed(
+                    title = "Question " + str(i),
                     description = row[1],
                     colour = discord.Colour.blue()
                 )
@@ -128,8 +130,7 @@ async def on_message(message):
                 for emoji in emojis:
                     await msg.add_reaction(emoji)
                 print(msg)
-                while sum([i.count for i in msg.reactions]) < 5:
-                    pass
+                i += 1
 
     for ext in pic_ext:
         if len(image) > 0 and image[0].filename.endswith(ext) and len(content) > 0:
