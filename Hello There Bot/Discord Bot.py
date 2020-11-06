@@ -122,14 +122,17 @@ async def on_message(message):
                 embed = discord.Embed(
                     title = "Question " + str(i),
                     description = row[1],
+                    
                     colour = discord.Colour.blue()
                 )
+                embed.add_field(name='🇦', value='true')
+                embed.add_field(name='🇧', value='false')
                 await channel.send(embed = embed)
-                emojis = ['🇦', '🇧', '🇨', '🇩'] 
+                #emojis = ['🇦', '🇧', '🇨', '🇩'] 
+                emojis = ['🇦', '🇧']
                 msg = await channel.history().get(author__name='Hello There')
                 for emoji in emojis:
                     await msg.add_reaction(emoji)
-                print(msg)
                 i += 1
 
     for ext in pic_ext:
