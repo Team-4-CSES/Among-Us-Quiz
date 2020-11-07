@@ -1,3 +1,2 @@
-node_modules
-dist
-website/api/node_modules
+# exclude tokens texts
+/Hello There Bot/*.txt
