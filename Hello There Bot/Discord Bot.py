@@ -8,12 +8,14 @@ Created on Tue Oct 13 17:07:08 2020
 import discord
 from discord.ext import commands
 import nest_asyncio
+import asyncio
 import cv2
 from PIL import Image
 from PIL import ImageColor
 from scipy import signal as sg
 import numpy as np
 import csv
+import time
 nest_asyncio.apply()
 
 tokenIn = open("Token Key.txt", "r+").readline()
@@ -119,7 +121,13 @@ async def on_message(message):
         with open('quiz.csv', newline='') as q:
             reader = csv.reader(q)
             i = 1
+            answer_dict = {'🇦': "T", '🇧': "F"}
             for row in reader:
+                def check(rxn, user):
+                    if user.name != "Hello There":
+                        return True
+                    else:
+                        return False
                 embed = discord.Embed(
                     title = "Question " + str(i),
                     description = row[1],
@@ -128,6 +136,7 @@ async def on_message(message):
                 )
                 embed.add_field(name='🇦', value='true')
                 embed.add_field(name='🇧', value='false')
+                embed.add_field(name='Time:', value=row[3]+" seconds",inline=False)
                 await channel.send(embed = embed)
                 #emojis = ['🇦', '🇧', '🇨', '🇩'] 
                 emojis = ['🇦', '🇧']
@@ -135,6 +144,17 @@ async def on_message(message):
                 for emoji in emojis:
                     await msg.add_reaction(emoji)
                 i += 1
+                answer = "Fail"
+                try:
+                    answer = await client.wait_for("reaction_add", timeout=float(row[3]), check=check)
+                except:
+                    await channel.send("No Response Given")
+                if type(answer) != str:                
+                    if answer[0].emoji in answer_dict.keys() and answer_dict[answer[0].emoji] == "T":
+                        await channel.send("Correct!")
+                    else: 
+                        await channel.send("WRONG!")
+                        await channel.send(answer[1].name + " will be kicked!")
 
     for ext in pic_ext:
         if len(image) > 0 and image[0].filename.endswith(ext) and len(content) > 0:
@@ -165,7 +185,8 @@ async def on_message(message):
 async def on_reaction_add(rxn, user):
     message = rxn.message
     reactions = message.reactions
-    print(reactions)
+    #print(reactions)
+    #print(user)
 
 @client.event
 async def on_message_delete(message):
