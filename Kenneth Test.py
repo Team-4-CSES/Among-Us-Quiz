@@ -3,6 +3,8 @@ import discord
 import pandas as pd
 import time
 import asyncio
+import string, random
+# import uuid
 from discord.ext import commands
 
 client = commands.Bot(command_prefix="!")
@@ -13,7 +15,9 @@ async def upload(ctx, filetype, quiztype):
     validquiztypes = ["fitb", "mc", "tf"]
     validfiletypes = ["url", "csv", "excel", "xls"]
 
+
     #FIXME check for valid arguments
+
     filetypechecker = False
     quiztypechecker = False
     for i in range(len(validfiletypes)):
@@ -30,8 +34,6 @@ async def upload(ctx, filetype, quiztype):
         await ctx.send("Error! Invalid quiz type!")
         await ctx.send("The command's syntax goes as follows: !upload <filetype> <quiztype>.")
 
-
-
     if filetype == "csv" and quiztype == "tf":
 
         await ctx.send("Please upload your True/False .CSV file.")
@@ -39,19 +41,40 @@ async def upload(ctx, filetype, quiztype):
         def check(message):
             return message.attachments[0].filename.endswith('.csv') and message.author == ctx.author
 
+
+        # checks if the 4 letter id is unique. If not, creates a new one.
+        def filenamechecker(filename):
+            with open("unique ids.csv", "r") as csvfile:
+                reader = csv.reader(csvfile)
+                for row in reader:
+                    if filename in row:
+                        filename = ''.join(random.choice(string.ascii_uppercase) for i in range(4)) + ".csv"
+                        filenamechecker(filename)
+
         try:
-            message = await client.wait_for('message', timeout=5.0, check=check)
+            message = await client.wait_for('message', timeout=10.0, check=check)
             file = message.attachments
+            unique_filename = ''.join(random.choice(string.ascii_uppercase) for i in range(4)) + ".csv"
+
+            filenamechecker(unique_filename)
+
+            with open("unique ids.csv", "a") as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow([unique_filename])
+
             if len(file) > 0 and file[0].filename.endswith('.csv'):
-                await file[0].save('quiz.csv')
-                with open('quiz.csv', newline='') as q:
+                await file[0].save(unique_filename)
+                with open(unique_filename, newline='') as q:
                     reader = csv.reader(q)
                     for row in reader:
                         await ctx.channel.send(row)
+
             await ctx.channel.send("--------------")
-            await ctx.channel.send("Is this the question you wish to create? (Y/N)")
+            await ctx.channel.send("Is this the quiz set you wish to create? (Y/N)")
+
         except asyncio.TimeoutError:
-            await ctx.channel.send("You timed out! Please resend the command if you still wish to upload a quiz set.")
+            await ctx.channel.send("You timed out!")
+            await ctx.channel.send("Please resend the command if you still wish to upload a quiz set.")
 
     '''
     if (filetype == "csv" and quiztype == "mc"):
