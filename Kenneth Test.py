@@ -16,7 +16,7 @@ async def upload(ctx, filetype, quiztype):
     validfiletypes = ["url", "csv", "excel", "xls"]
 
 
-    #FIXME check for valid arguments
+    # FIXME check for valid arguments
 
     filetypechecker = False
     quiztypechecker = False
@@ -43,6 +43,7 @@ async def upload(ctx, filetype, quiztype):
 
 
         # checks if the 4 letter id is unique. If not, creates a new one.
+
         def filenamechecker(filename):
             with open("unique ids.csv", "r") as csvfile:
                 reader = csv.reader(csvfile)
@@ -54,7 +55,9 @@ async def upload(ctx, filetype, quiztype):
         try:
             message = await client.wait_for('message', timeout=10.0, check=check)
             file = message.attachments
-            unique_filename = ''.join(random.choice(string.ascii_uppercase) for i in range(4)) + ".csv"
+            unique_quizcode = ''.join(random.choice(string.ascii_uppercase) for i in range(4))
+            unique_filename = unique_quizcode + ".csv"
+
 
             filenamechecker(unique_filename)
 
@@ -72,6 +75,22 @@ async def upload(ctx, filetype, quiztype):
             await ctx.channel.send("--------------")
             await ctx.channel.send("Is this the quiz set you wish to create? (Y/N)")
 
+            def checkanswer(message):
+                return message.content.lower() == "y" and message.channel == ctx.channel
+            try:
+                userAnswer = await client.wait_for('message', timeout=15.0, check=checkanswer)
+                yes = "y"
+                no = "n"
+                if yes in userAnswer:
+                    await ctx.channel.send("Success! Your quiz set ID is " + unique_quizcode)
+                elif no in userAnswer:
+                    await ctx.channel.send("Got it. Quizset deleted.")
+
+
+            except asyncio.TimeoutError:
+                await ctx.channel.send("You timed out!")
+                await ctx.channel.send("Please resend the command if you still wish to upload a quiz set.")
+
         except asyncio.TimeoutError:
             await ctx.channel.send("You timed out!")
             await ctx.channel.send("Please resend the command if you still wish to upload a quiz set.")
@@ -88,12 +107,11 @@ async def upload(ctx, filetype, quiztype):
 async def on_ready():
     print("Test Bot is ready")
 
+'''
 async def on_message(message):
-
     await client.process_commands(message)
+'''
 
-
-
-
-# client.run("NzY2NDE4ODg4NzY1NzM0OTcy.X4jFNg.2KqfdDAIp1apUUa2wE5aG6tL374")
-client.run("NzcyNjIzNTE5ODgzNTkxNzYw.X59XuQ.6PEw5Dwt_IDHUs09TWottYqMExE")
+tokenIn = open("kenneth test bot token.txt", "r+").readline()
+token = tokenIn
+client.run(token)
