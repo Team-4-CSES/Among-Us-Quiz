@@ -1,2 +1,3 @@
-# exclude tokens texts
+# exclude tokens texts 
 /Hello There Bot/*.txt
+*.txt
