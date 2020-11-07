@@ -16,7 +16,8 @@ import numpy as np
 import csv
 nest_asyncio.apply()
 
-token = "NzY1NzQ2MDEyMjgyNjgzMzkz.X4ZSjA.Z9GarRNXV2bKEHb1_LUQouzAka4"
+tokenIn = open("Token Key.txt", "r+").readline()
+token = tokenIn
 
 client = commands.Bot(command_prefix = '.')
 
