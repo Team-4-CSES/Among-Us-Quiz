@@ -150,7 +150,7 @@ async def on_message(message):
                 except:
                     await channel.send("No Response Given")
                 if type(answer) != str:                
-                    if answer[0].emoji in answer_dict.keys() and answer_dict[answer[0].emoji] == "T":
+                    if answer[0].emoji in answer_dict.keys() and answer_dict[answer[0].emoji] == row[2]:
                         await channel.send("Correct!")
                     else: 
                         await channel.send("WRONG!")
