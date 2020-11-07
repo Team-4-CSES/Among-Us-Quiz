@@ -16,7 +16,7 @@ import numpy as np
 import csv
 nest_asyncio.apply()
 
-token = "NzY1NzQ2MDEyMjgyNjgzMzkz.X4ZSjA.TcRl6AKahwMVKFh0GGQY1bVMavU"
+token = "NzY1NzQ2MDEyMjgyNjgzMzkz.X4ZSjA.Z9GarRNXV2bKEHb1_LUQouzAka4"
 
 client = commands.Bot(command_prefix = '.')
 
