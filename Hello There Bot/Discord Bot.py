@@ -119,39 +119,49 @@ async def on_message(message):
         print("reading csv")
         await image[0].save('quiz.csv')
         with open('quiz.csv', newline='') as q:
-            reader = csv.reader(q)
+            reader = csv.reader(q, delimiter='~')
             i = 1
-            answer_dict = {'🇦': "T", '🇧': "F"}
+            answer_dict = {'🇦': "A", '🇧': "B", '🇨': "C", '🇩': "D", 
+                           '🇪': "E", '🇫': "F", '🇬': "G", '🇭': "F", 
+                           '🇮': "I", '🇯': "J"}
             for row in reader:
                 def check(rxn, user):
                     if user.name != "Hello There":
                         return True
                     else:
                         return False
+                def equation(x):
+                    return 300-300*(x/(int(row[3])/1.5))**2
                 embed = discord.Embed(
-                    title = "Question " + str(i),
+                    title = "Question " + row[0],
                     description = row[1],
                     
                     colour = discord.Colour.blue()
                 )
-                embed.add_field(name='🇦', value='true')
-                embed.add_field(name='🇧', value='false')
+                emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
+                for i, e  in enumerate(emojis[:int(row[4])]):
+                    embed.add_field(name=e, value=row[5+i])                    
                 embed.add_field(name='Time:', value=row[3]+" seconds",inline=False)
                 await channel.send(embed = embed)
-                #emojis = ['🇦', '🇧', '🇨', '🇩'] 
-                emojis = ['🇦', '🇧']
+                emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
                 msg = await channel.history().get(author__name='Hello There')
-                for emoji in emojis:
+                for emoji in emojis[:int(row[4])]:
                     await msg.add_reaction(emoji)
-                i += 1
                 answer = "Fail"
+                t0 = time.perf_counter()
                 try:
                     answer = await client.wait_for("reaction_add", timeout=float(row[3]), check=check)
                 except:
                     await channel.send("No Response Given")
-                if type(answer) != str:                
+                if type(answer) != str:
+                    t1 = time.perf_counter()
+                    times = t1 - t0
+                    pts = equation(times)
+                    if pts < 10:
+                        pts = 10
+                    print("Time:", times)
                     if answer[0].emoji in answer_dict.keys() and answer_dict[answer[0].emoji] == row[2]:
-                        await channel.send("Correct!")
+                        await channel.send("Correct!  " + answer[1].name + " will be awarded " + str(int(round(pts, 0))) + " points.")
                     else: 
                         await channel.send("WRONG!")
                         await channel.send(answer[1].name + " will be kicked!")
