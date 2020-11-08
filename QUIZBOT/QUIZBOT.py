@@ -9,6 +9,10 @@ from discord.ext import commands
 
 client = commands.Bot(command_prefix="!")
 
+@client.event
+async def on_ready():
+    print("Bobby bot online >:)")
+
 @client.command()
 async def upload(ctx, filetype, quiztype):
 
@@ -79,11 +83,10 @@ async def upload(ctx, filetype, quiztype):
                 return message.content.lower() == "y" and message.channel == ctx.channel
             try:
                 userAnswer = await client.wait_for('message', timeout=15.0, check=checkanswer)
-                yes = "y"
-                no = "n"
-                if yes in userAnswer:
+                print(userAnswer.content)
+                if userAnswer.content.lower() == "y":
                     await ctx.channel.send("Success! Your quiz set ID is " + unique_quizcode)
-                elif no in userAnswer:
+                elif userAnswer.content.lower() == "n":
                     await ctx.channel.send("Got it. Quizset deleted.")
 
 
@@ -101,17 +104,57 @@ async def upload(ctx, filetype, quiztype):
 
     if (filetype == "csv" and quiztype == "fitb"):
         await ctx.send("Please upload your Fill in the Blank .CSV file.")
-'''
+    '''
 
-@client.event
-async def on_ready():
-    print("Test Bot is ready")
+@client.command()
+async def run(ctx, quizcode):
+    channel = ctx.channel
+    quizname = quizcode + ".csv"
+    with open(quizname, newline='') as q:
+        reader = csv.reader(q)
+        i = 1
+        answer_dict = {'🇦': "T", '🇧': "F"}
+        for row in reader:
+            def check(rxn, user):
+                if user.name != "Bobby Bot":
+                    return True
+                else:
+                    return False
 
-'''
-async def on_message(message):
-    await client.process_commands(message)
-'''
+            embed = discord.Embed(
+                title="Question " + str(i),
+                description=row[1],
 
-tokenIn = open("kenneth test bot token.txt", "r+").readline()
+                colour=discord.Colour.blue()
+            )
+            embed.add_field(name='🇦', value='true')
+            embed.add_field(name='🇧', value='false')
+            embed.add_field(name='Time:', value=row[3] + " seconds", inline=False)
+            await channel.send(embed=embed)
+            # emojis = ['🇦', '🇧', '🇨', '🇩']
+            emojis = ['🇦', '🇧']
+            msg = await channel.history().get(author__name='Bobby Bot')
+            for emoji in emojis:
+                await msg.add_reaction(emoji)
+            i += 1
+            answer = "Fail"
+            try:
+                answer = await client.wait_for("reaction_add", timeout=float(row[3]), check=check)
+            except:
+                await channel.send("No Response Given")
+            if type(answer) != str:
+                if answer[0].emoji in answer_dict.keys() and answer_dict[answer[0].emoji] == row[2]:
+                    await channel.send("Correct!")
+                else:
+                    await channel.send("WRONG!")
+                    await channel.send(answer[1].name + " will be kicked!")
+
+
+
+#use only if we want an on_message for something // await client.process_commands(message)
+#also leaving this here ''' since apostrophes are weird on IDEs
+
+
+tokenIn = open("token.txt", "r+").readline()
 token = tokenIn
 client.run(token)
