@@ -22,6 +22,11 @@ const MainContent = (props) => {
         channel, and people get kicked out of the channel if they get a question
         wrong. The last player left in the voice channel wins!
       </p>
+      <h3>Using the bot</h3>
+      <p>
+        Add the bot to your server and choose from any of the available quizzes
+        in the database to play!
+      </p>
     </div>
   );
 };
