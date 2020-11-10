@@ -8,14 +8,18 @@ Created on Tue Oct 13 17:07:08 2020
 import discord
 from discord.ext import commands
 import nest_asyncio
+import asyncio
 import cv2
 from PIL import Image
 from PIL import ImageColor
 from scipy import signal as sg
 import numpy as np
+import csv
+import time
 nest_asyncio.apply()
 
-token = "NzY1NzQ2MDEyMjgyNjgzMzkz.X4ZSjA.TcRl6AKahwMVKFh0GGQY1bVMavU"
+tokenIn = open("Token Key.txt", "r+").readline()
+token = tokenIn
 
 client = commands.Bot(command_prefix = '.')
 
@@ -108,8 +112,60 @@ async def on_message(message):
     content = message.content
     channel = message.channel
     image = message.attachments
+    reactions = message.reactions
     morse = True
     pic_ext = ['.jpg','.png','.jpeg']
+    if len(image)>0 and image[0].filename.endswith('.csv'):
+        print("reading csv")
+        await image[0].save('quiz.csv')
+        with open('quiz.csv', newline='') as q:
+            reader = csv.reader(q, delimiter='~')
+            i = 1
+            answer_dict = {'🇦': "A", '🇧': "B", '🇨': "C", '🇩': "D", 
+                           '🇪': "E", '🇫': "F", '🇬': "G", '🇭': "F", 
+                           '🇮': "I", '🇯': "J"}
+            for row in reader:
+                def check(rxn, user):
+                    if user.name != "Hello There":
+                        return True
+                    else:
+                        return False
+                def equation(x):
+                    return 300-300*(x/(int(row[3])/1.5))**2
+                embed = discord.Embed(
+                    title = "Question " + row[0],
+                    description = row[1],
+                    
+                    colour = discord.Colour.blue()
+                )
+                emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
+                for i, e  in enumerate(emojis[:int(row[4])]):
+                    embed.add_field(name=e, value=row[5+i])                    
+                embed.add_field(name='Time:', value=row[3]+" seconds",inline=False)
+                await channel.send(embed = embed)
+                emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
+                msg = await channel.history().get(author__name='Hello There')
+                for emoji in emojis[:int(row[4])]:
+                    await msg.add_reaction(emoji)
+                answer = "Fail"
+                t0 = time.perf_counter()
+                try:
+                    answer = await client.wait_for("reaction_add", timeout=float(row[3]), check=check)
+                except:
+                    await channel.send("No Response Given")
+                if type(answer) != str:
+                    t1 = time.perf_counter()
+                    times = t1 - t0
+                    pts = equation(times)
+                    if pts < 10:
+                        pts = 10
+                    print("Time:", times)
+                    if answer[0].emoji in answer_dict.keys() and answer_dict[answer[0].emoji] == row[2]:
+                        await channel.send("Correct!  " + answer[1].name + " will be awarded " + str(int(round(pts, 0))) + " points.")
+                    else: 
+                        await channel.send("WRONG!")
+                        await channel.send(answer[1].name + " will be kicked!")
+
     for ext in pic_ext:
         if len(image) > 0 and image[0].filename.endswith(ext) and len(content) > 0:
             await image[0].save(image[0].filename)
@@ -134,7 +190,14 @@ async def on_message(message):
         await channel.send(file=discord.File('Pogwon.png'))
     if morse:
         await channel.send(decodeMorse(content))        
-        
+
+@client.event
+async def on_reaction_add(rxn, user):
+    message = rxn.message
+    reactions = message.reactions
+    #print(reactions)
+    #print(user)
+
 @client.event
 async def on_message_delete(message):
     author = message.author
