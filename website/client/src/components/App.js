@@ -17,7 +17,7 @@ const App = (props) => {
         <Route path="/" exact component={MainContent} />
         <Route path="/quizzes/list" exact component={QuizzesList} />
         <Route path="/quizzes/create" exact component={QuizzesInsert} />
-        <Route path="/quizzes/update/:id" exact component={QuizzesUpdate} />
+        <Route path="/quizzes/update/:id" exact component={QuizzesUpdate}/>
       </Switch>
     </Router>
   );

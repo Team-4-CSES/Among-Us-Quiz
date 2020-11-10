@@ -1,8 +1,8 @@
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: "http://localhost:9000/api",
-});
+ const api = axios.create({
+   baseURL: "http://localhost:9000/api",
+ });
 
 export const insertQuiz = (payload) => api.post(`/quiz`, payload);
 export const getAllQuizzes = () => api.get(`/quizzes`);

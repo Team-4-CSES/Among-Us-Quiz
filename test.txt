@@ -1,6 +1,0 @@
-Trying out merge conflicts
-
-Testing,\
-Testing testing}
-
-Hello my name is quizbot

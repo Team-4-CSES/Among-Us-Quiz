@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "webpack-dev-server --mode development && npm run open",
+    "start": "webpack-dev-server --mode development --history-api-fallback && npm run open",
     "open": "concurrently \"http-server -a localhost -p 3000\" \"open http://localhost:3000/dist\""
   },
   "repository": {
@@ -23,6 +23,7 @@
     "@babel/core": "^7.12.3",
     "@babel/preset-env": "^7.12.1",
     "@babel/preset-react": "^7.12.1",
+    "@babel/plugin-transform-runtime": "^7.9.0",
     "axios": "^0.21.0",
     "babel-loader": "^8.0.2",
     "bootstrap": "^4.5.3",
@@ -36,6 +37,7 @@
     "react-dom": "^16.14.0",
     "react-router-dom": "^5.2.0",
     "react-table": "^7.6.1",
+    "react-table-6": "^6.11.0",
     "style-loader": "^0.23.0",
     "styled-components": "^5.2.1",
     "webpack": "^4.19.1",
