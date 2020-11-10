@@ -6,19 +6,19 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack-dev-server --mode development --history-api-fallback && npm run open",
-    "build": "react-scripts build",
+    "build": "webpack",
     "open": "concurrently \"http-server -a localhost -p 3000\" \"open http://localhost:3000/dist\"",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d website/client"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ercpham/quizbotsite.git"
+    "url": "git+https://github.com/Team-4-CSES/Among-Us-Quiz"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ercpham/quizbotsite/issues"
+    "url": "https://github.com/Team-4-CSES/Among-Us-Quiz/issues"
   },
   "homepage": "https://team-4-cses.github.io/Among-Us-Quiz/",
   "devDependencies": {
