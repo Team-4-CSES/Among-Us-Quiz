@@ -18,9 +18,7 @@ async def upload(ctx, filetype):
 
     validfiletypes = ["url", "csv", "excel", "xls"]
 
-
-    # FIXME check for valid arguments
-
+#checks if parameter is good
     filetypechecker = False
     for i in range(len(validfiletypes)):
         if validfiletypes[i] in filetype.lower():
@@ -82,9 +80,6 @@ async def upload(ctx, filetype):
                     await ctx.channel.send("Got it. Quizset deleted.")
                     os.remove(unique_filename)
                     #FIXME delete the last row within the CSV aka the new unique code
-
-
-
 
             except asyncio.TimeoutError:
                 await ctx.channel.send("You timed out!")
