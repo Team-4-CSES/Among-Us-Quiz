@@ -23,6 +23,8 @@ token = tokenIn
 
 client = commands.Bot(command_prefix = '.')
 
+client.players = {}
+
 def myround(x, base=30):
     return base * round(x/base)
 
@@ -113,9 +115,14 @@ async def on_message(message):
     channel = message.channel
     image = message.attachments
     reactions = message.reactions
-    morse = True
+    morse = False
     pic_ext = ['.jpg','.png','.jpeg']
     if len(image)>0 and image[0].filename.endswith('.csv'):
+        await channel.send(embed = discord.Embed(title = "You have 10 seconds to react to the reaction below and join the game.", color = discord.Colour.blue()))
+        InvMsg = await channel.history().get(author__name='Hello There')
+        await InvMsg.add_reaction("💩")
+        time.sleep(10)
+        await channel.send("Starting")
         print("reading csv")
         await image[0].save('quiz.csv')
         with open('quiz.csv', newline='') as q:
@@ -125,8 +132,23 @@ async def on_message(message):
                            '🇪': "E", '🇫': "F", '🇬': "G", '🇭': "F", 
                            '🇮': "I", '🇯': "J"}
             for row in reader:
+                print(row)
+                if row[0] == "done":
+                    Final = discord.Embed(
+                        title = "Final Podium",
+                        
+                        color = discord.Colour.gold()
+                        )
+                    rank = 1
+                    medals = ["🥇", "🥈", "🥉"]
+                    for player in list(client.players.keys())[:3]:
+                        Final.add_field(name= medals[rank-1], value= player, inline=False)
+                        rank += 1
+                    await channel.send(embed=Final)
+                    client.players = {}
+                    break
                 def check(rxn, user):
-                    if user.name != "Hello There":
+                    if user.name != "Hello There" and user.name in client.players.keys():
                         return True
                     else:
                         return False
@@ -162,9 +184,23 @@ async def on_message(message):
                     print("Time:", times)
                     if answer[0].emoji in answer_dict.keys() and answer_dict[answer[0].emoji] == row[2]:
                         await channel.send("Correct!  " + answer[1].name + " will be awarded " + str(int(round(pts, 0))) + " points.")
+                        client.players[answer[1].name] += int(round(pts, 0))
                     else: 
+                        client.players.pop(answer[1].name, None)
                         await channel.send("WRONG! The correct answer is " + row[2])
                         await channel.send(answer[1].name + " will be kicked!")
+                client.players = dict(sorted(client.players.items(), key = lambda kv:kv[1], reverse=True))
+                print(client.players)
+                rankings = discord.Embed(
+                    title = "Rankings",
+                    
+                    color = discord.Colour.red()
+                    )
+                rank = 1
+                for player in client.players.keys():
+                    rankings.add_field(name= str(rank)+". "+player, value= str(client.players[player])+" point", inline=False)
+                    rank += 1
+                await channel.send(embed=rankings)
 
     for ext in pic_ext:
         if len(image) > 0 and image[0].filename.endswith(ext) and len(content) > 0:
@@ -181,23 +217,26 @@ async def on_message(message):
         await channel.send("2. What color is the side and legs?")
         await channel.send("3. What color is the spider insignia and suit lines?")
     for i in content:
-        if i not in '/.- ':
+        if i in '/.- ':
+            morse = True
+        else:
             morse = False
+            break
     print("{}: {}".format(author, content))
     if "hello there" in content.lower():
         await channel.send("General Kenobi")
     if "pogwon" in content.lower() or "juwon" in content.lower():
         await channel.send(file=discord.File('Pogwon.png'))
     if morse:
-        await channel.send(decodeMorse(content))        
+        await channel.send(decodeMorse(content))
 
 @client.event
 async def on_reaction_add(rxn, user):
     message = rxn.message
     reactions = message.reactions
-    #print(reactions)
-    #print(user)
-
+    if reactions[0].emoji == "💩" and user.name != "Hello There" and message.author.name == "Hello There":
+        client.players[user.name] = 0
+    
 @client.event
 async def on_message_delete(message):
     author = message.author
