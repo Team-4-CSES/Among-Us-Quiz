@@ -99,7 +99,7 @@ getQuizById = async (req, res) => {
 };
 
 getQuizzes = async (req, res) => {
-  await Movie.find({}, (err, quizzes) => {
+  await Quiz.find({}, (err, quizzes) => {
     if (err) {
       return res.status(400).json({ success: false, error: err });
     }

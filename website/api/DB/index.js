@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 
+const uri = "mongodb+srv://eric:supepcoo101@cluster0.tes7n.mongodb.net/quizInfo?retryWrites=true&w=majority";
 mongoose
-  .connect("mongodb://127.0.0.1:27017/quizInfo", {
+  .connect(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
