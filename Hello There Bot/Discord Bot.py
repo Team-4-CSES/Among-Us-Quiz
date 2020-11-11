@@ -163,7 +163,7 @@ async def on_message(message):
                     if answer[0].emoji in answer_dict.keys() and answer_dict[answer[0].emoji] == row[2]:
                         await channel.send("Correct!  " + answer[1].name + " will be awarded " + str(int(round(pts, 0))) + " points.")
                     else: 
-                        await channel.send("WRONG!")
+                        await channel.send("WRONG! The correct answer is " + row[2])
                         await channel.send(answer[1].name + " will be kicked!")
 
     for ext in pic_ext:
