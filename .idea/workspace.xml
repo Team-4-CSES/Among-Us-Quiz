@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="de7720d6-f283-4fbe-a2cf-0c8b104d02b6" name="Default Changelist" comment="" />
+    <list default="true" id="de7720d6-f283-4fbe-a2cf-0c8b104d02b6" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/Among-Us-Quiz.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Among-Us-Quiz.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -17,31 +22,10 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="last_opened_file_path" value="$USER_HOME$/Desktop/DiscordBot/TRUEbot.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../DiscordBot/TRUEbot.py" />
     <property name="restartRequiresConfirmation" value="false" />
   </component>
-  <component name="RunManager" selected="Python.Kenneth Test">
-    <configuration name="Kenneth Test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="Among-Us-Quiz" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Kenneth Test.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="Python.nicole BOT">
     <configuration name="TRUEbot" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Among-Us-Quiz" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -50,11 +34,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$USER_HOME$/Desktop/DiscordBot" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../DiscordBot" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$USER_HOME$/Desktop/DiscordBot/TRUEbot.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../DiscordBot/TRUEbot.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -63,9 +47,34 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="nicole BOT" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Among-Us-Quiz" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/nicole" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/nicole/nicole BOT.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.nicole BOT" />
+      <item itemvalue="Python.TRUEbot" />
+    </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.Kenneth Test" />
+        <item itemvalue="Python.nicole BOT" />
         <item itemvalue="Python.TRUEbot" />
       </list>
     </recent_temporary>
@@ -82,25 +91,37 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
+    <state x="266" y="52" width="1071" height="700" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1605156346533">
+      <screen x="0" y="23" width="1440" height="806" />
+    </state>
+    <state x="266" y="52" width="1071" height="700" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1440.806@0.23.1440.806" timestamp="1605156346533" />
     <state x="267" y="275" key="FileChooserDialogImpl" timestamp="1604394060759">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="267" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1604394060759" />
-    <state width="936" height="281" key="GridCell.Tab.0.bottom" timestamp="1604523513589">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1074" height="184" key="GridCell.Tab.0.bottom" timestamp="1605157103312">
+      <screen x="0" y="23" width="1440" height="808" />
     </state>
     <state width="936" height="281" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1604523513589" />
-    <state width="936" height="281" key="GridCell.Tab.0.center" timestamp="1604523513589">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1074" height="184" key="GridCell.Tab.0.bottom/0.23.1440.806@0.23.1440.806" timestamp="1605156348475" />
+    <state width="1074" height="184" key="GridCell.Tab.0.bottom/0.23.1440.808@0.23.1440.808" timestamp="1605157103312" />
+    <state width="1074" height="184" key="GridCell.Tab.0.center" timestamp="1605157103309">
+      <screen x="0" y="23" width="1440" height="808" />
     </state>
     <state width="936" height="281" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1604523513589" />
-    <state width="936" height="281" key="GridCell.Tab.0.left" timestamp="1604523513588">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1074" height="184" key="GridCell.Tab.0.center/0.23.1440.806@0.23.1440.806" timestamp="1605156348466" />
+    <state width="1074" height="184" key="GridCell.Tab.0.center/0.23.1440.808@0.23.1440.808" timestamp="1605157103309" />
+    <state width="1074" height="184" key="GridCell.Tab.0.left" timestamp="1605157103307">
+      <screen x="0" y="23" width="1440" height="808" />
     </state>
     <state width="936" height="281" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1604523513588" />
-    <state width="936" height="281" key="GridCell.Tab.0.right" timestamp="1604523513589">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1074" height="184" key="GridCell.Tab.0.left/0.23.1440.806@0.23.1440.806" timestamp="1605156348460" />
+    <state width="1074" height="184" key="GridCell.Tab.0.left/0.23.1440.808@0.23.1440.808" timestamp="1605157103307" />
+    <state width="1074" height="184" key="GridCell.Tab.0.right" timestamp="1605157103310">
+      <screen x="0" y="23" width="1440" height="808" />
     </state>
     <state width="936" height="281" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1604523513589" />
+    <state width="1074" height="184" key="GridCell.Tab.0.right/0.23.1440.806@0.23.1440.806" timestamp="1605156348471" />
+    <state width="1074" height="184" key="GridCell.Tab.0.right/0.23.1440.808@0.23.1440.808" timestamp="1605157103310" />
   </component>
 </project>
