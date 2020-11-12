@@ -11,36 +11,26 @@ client = commands.Bot(command_prefix="!")
 
 @client.event
 async def on_ready():
-    print("Bobby bot online >:)")
+    print("quizbot online")
 
 @client.command()
-async def upload(ctx, filetype, quiztype):
+async def upload(ctx, filetype):
 
-    validquiztypes = ["fitb", "mc", "tf"]
     validfiletypes = ["url", "csv", "excel", "xls"]
 
-
-    # FIXME check for valid arguments
-
+#checks if parameter is good
     filetypechecker = False
-    quiztypechecker = False
     for i in range(len(validfiletypes)):
         if validfiletypes[i] in filetype.lower():
             filetypechecker = True
-    for j in range(len(validquiztypes)):
-        if validquiztypes[j] in quiztype.lower():
-            quiztypechecker = True
 
     if not filetypechecker:
         await ctx.send("Error! Unsupported file type!")
         await ctx.send("The command's syntax goes as follows: !upload <filetype> <quiztype>.")
-    elif not quiztypechecker:
-        await ctx.send("Error! Invalid quiz type!")
-        await ctx.send("The command's syntax goes as follows: !upload <filetype> <quiztype>.")
 
-    if filetype == "csv" and quiztype == "tf":
+    if filetype == "csv":
 
-        await ctx.send("Please upload your True/False .CSV file.")
+        await ctx.send("Please upload your .CSV file.")
 
         def check(message):
             return message.attachments[0].filename.endswith('.csv') and message.author == ctx.author
@@ -72,7 +62,7 @@ async def upload(ctx, filetype, quiztype):
             if len(file) > 0 and file[0].filename.endswith('.csv'):
                 await file[0].save(unique_filename)
                 with open(unique_filename, newline='') as q:
-                    reader = csv.reader(q)
+                    reader = csv.reader(q, delimiter='~')
                     for row in reader:
                         await ctx.channel.send(row)
 
@@ -80,7 +70,7 @@ async def upload(ctx, filetype, quiztype):
             await ctx.channel.send("Is this the quiz set you wish to create? (Y/N)")
 
             def checkanswer(message):
-                return message.content.lower() == "y" and message.channel == ctx.channel
+                return (message.content.lower() == "y" or message.content.lower() == "n") and message.channel == ctx.channel
             try:
                 userAnswer = await client.wait_for('message', timeout=15.0, check=checkanswer)
                 print(userAnswer.content)
@@ -88,7 +78,8 @@ async def upload(ctx, filetype, quiztype):
                     await ctx.channel.send("Success! Your quiz set ID is " + unique_quizcode)
                 elif userAnswer.content.lower() == "n":
                     await ctx.channel.send("Got it. Quizset deleted.")
-
+                    os.remove(unique_filename)
+                    #FIXME delete the last row within the CSV aka the new unique code
 
             except asyncio.TimeoutError:
                 await ctx.channel.send("You timed out!")
@@ -98,22 +89,17 @@ async def upload(ctx, filetype, quiztype):
             await ctx.channel.send("You timed out!")
             await ctx.channel.send("Please resend the command if you still wish to upload a quiz set.")
 
-    '''
-    if (filetype == "csv" and quiztype == "mc"):
-        await ctx.send("Please upload your Multiple Choice .CSV file.")
-
-    if (filetype == "csv" and quiztype == "fitb"):
-        await ctx.send("Please upload your Fill in the Blank .CSV file.")
-    '''
 
 @client.command()
 async def run(ctx, quizcode):
     channel = ctx.channel
     quizname = quizcode + ".csv"
     with open(quizname, newline='') as q:
-        reader = csv.reader(q)
+        reader = csv.reader(q, delimiter='~')
         i = 1
-        answer_dict = {'🇦': "T", '🇧': "F"}
+        answer_dict = {'🇦': "A", '🇧': "B", '🇨': "C", '🇩': "D",
+                           '🇪': "E", '🇫': "F", '🇬': "G", '🇭': "F",
+                           '🇮': "I", '🇯': "J"}
         for row in reader:
             def check(rxn, user):
                 if user.name != "Bobby Bot":
@@ -121,33 +107,45 @@ async def run(ctx, quizcode):
                 else:
                     return False
 
+
+            # tracks the amount of time elapsed from question start
+            def equation(x):
+                return 300 - 300 * (x / (int(row[3]) / 1.5)) ** 2
+
             embed = discord.Embed(
-                title="Question " + str(i),
+                title="Question " + row[0],
                 description=row[1],
 
                 colour=discord.Colour.blue()
             )
-            embed.add_field(name='🇦', value='true')
-            embed.add_field(name='🇧', value='false')
+            emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯']
+            for i, e in enumerate(emojis[:int(row[4])]):
+                embed.add_field(name=e, value=row[5 + i])
             embed.add_field(name='Time:', value=row[3] + " seconds", inline=False)
-            await channel.send(embed=embed)
-            # emojis = ['🇦', '🇧', '🇨', '🇩']
-            emojis = ['🇦', '🇧']
-            msg = await channel.history().get(author__name='Bobby Bot')
-            for emoji in emojis:
+            await ctx.channel.send(embed=embed)
+            emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯']
+            msg = await ctx.channel.history().get(author__name='Bobby Bot')
+            for emoji in emojis[:int(row[4])]:
                 await msg.add_reaction(emoji)
-            i += 1
             answer = "Fail"
+            t0 = time.perf_counter()
             try:
                 answer = await client.wait_for("reaction_add", timeout=float(row[3]), check=check)
             except:
-                await channel.send("No Response Given")
+                await ctx.channel.send("No Response Given")
             if type(answer) != str:
+                t1 = time.perf_counter()
+                times = t1 - t0
+                pts = equation(times)
+                if pts < 10:
+                    pts = 10
+                print("Time:", times)
                 if answer[0].emoji in answer_dict.keys() and answer_dict[answer[0].emoji] == row[2]:
-                    await channel.send("Correct!")
+                    await ctx.channel.send(
+                        "Correct!  " + answer[1].name + " will be awarded " + str(int(round(pts, 0))) + " points.")
                 else:
-                    await channel.send("WRONG!")
-                    await channel.send(answer[1].name + " will be kicked!")
+                    await ctx.channel.send("WRONG!")
+                    await ctx.channel.send(answer[1].name + " will be kicked!")
 
 
 
@@ -158,3 +156,5 @@ async def run(ctx, quizcode):
 tokenIn = open("token.txt", "r+").readline()
 token = tokenIn
 client.run(token)
+
+#hello
