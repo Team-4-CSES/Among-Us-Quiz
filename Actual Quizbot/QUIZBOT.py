@@ -117,7 +117,7 @@ async def upload(ctx, filetype):
 async def run(message, Id):
     channel = message.channel
     try:
-        doc = client.quiz.find_one({"_id": ObjectId(Id)})
+        doc = client.quiz.find_one({"_id": Id})
         questions = doc["questions"]
         answer_dict = {'🇦': "A", '🇧': "B", '🇨': "C", '🇩': "D",
                        '🇪': "E", '🇫': "F", '🇬': "G", '🇭': "F",
@@ -126,10 +126,10 @@ async def run(message, Id):
         await channel.send(
             embed=discord.Embed(title="You have 10 seconds to react to the reaction below and join the game.",
                                 color=discord.Colour.blue()))
-        InvMsg = await channel.history().get(author__name='Hello There')
+        InvMsg = await channel.history().get(author__name='Bobby Bot')
         await InvMsg.add_reaction("💩")
         time.sleep(10)
-        InvMsg = await channel.history().get(author__name='Hello There')
+        InvMsg = await channel.history().get(author__name='Bobby Bot')
         if InvMsg.reactions[0].count <= 1:
             await channel.send(
                 embed=discord.Embed(title="No players joined.  Ending the game.", color=discord.Colour.red()))
@@ -137,7 +137,7 @@ async def run(message, Id):
         await channel.send(embed=discord.Embed(
             title="Press 🇦 to play by elimination (wrong answers get you kicked) or 🇧 for subtraction (wrong answers lead to a score deduction).",
             color=discord.Colour.blue()))
-        OptMsg = await channel.history().get(author__name='Hello There')
+        OptMsg = await channel.history().get(author__name='Bobby Bot')
         await OptMsg.add_reaction("🇦")
         await OptMsg.add_reaction("🇧")
 
@@ -175,7 +175,7 @@ async def run(message, Id):
             row = row.split("~")
 
             def check(rxn, user):
-                if user.name != "Hello There" and user.name in client.players.keys():
+                if user.name != "Bobby Bot" and user.name in client.players.keys():
                     return True
                 else:
                     return False
@@ -195,7 +195,7 @@ async def run(message, Id):
             embed.add_field(name='Time:', value=row[3] + " seconds", inline=False)
             await channel.send(embed=embed)
             emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯']
-            msg = await channel.history().get(author__name='Hello There')
+            msg = await channel.history().get(author__name='Bobby Bot')
             for emoji in emojis[:int(row[4])]:
                 await msg.add_reaction(emoji)
             answer = "Fail"
