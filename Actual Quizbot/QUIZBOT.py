@@ -265,7 +265,7 @@ async def run(message, Id):
 async def on_reaction_add(rxn, user):
     message = rxn.message
     reactions = message.reactions
-    print(user.name, reactions[0].emoji)
+    #print(user.name, reactions[0].emoji)
     if reactions[0].emoji == "💩" and user.name != "Bobby Bot" and message.author.name == "Bobby Bot":
         client.players[user.name] = 0
 
