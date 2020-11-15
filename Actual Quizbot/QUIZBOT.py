@@ -117,7 +117,7 @@ async def upload(ctx, filetype):
 async def run(message, Id):
     channel = message.channel
     try:
-        doc = client.quiz.find_one({"_id": Id})
+        doc = collection.find_one({"_id": Id})
         questions = doc["questions"]
         answer_dict = {'🇦': "A", '🇧': "B", '🇨': "C", '🇩': "D",
                        '🇪': "E", '🇫': "F", '🇬': "G", '🇭': "F",
