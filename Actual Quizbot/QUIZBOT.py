@@ -1,10 +1,12 @@
 import csv
 import discord
 import asyncio
+import nest_asyncio
 import string, random
 from discord.ext import commands
 import time
 import os
+import math
 import pymongo
 from pymongo import MongoClient
 from bson.objectid import ObjectId
@@ -145,6 +147,7 @@ async def run(message, Id):
 
         # MAKE IT SO THAT ONLY PEOPLE IN THE GAME CAN VOTE
         def setCheck(rxn, user):
+            print(user.name, rxn.emoji, client.players.keys())
             if rxn.emoji in ["🇦", "🇧"] and user.name in client.players.keys():
                 if rxn.emoji == "🇦":
                     client.elimination = True
@@ -259,7 +262,12 @@ async def run(message, Id):
 
 #use only if we want an on_message for something // await client.process_commands(message)
 #also leaving this here ''' since apostrophes are weird on IDEs
-
+@client.event
+async def on_reaction_add(rxn, user):
+    message = rxn.message
+    reactions = message.reactions
+    if reactions[0].emoji == ":poop:" and user.name != "Bobby Bot" and message.author.name == "Bobby Bot":
+        client.players[user.name] = 0
 
 tokenIn = open("token.txt", "r+").readline()
 token = tokenIn
