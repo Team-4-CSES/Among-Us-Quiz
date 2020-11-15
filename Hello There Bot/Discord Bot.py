@@ -16,6 +16,7 @@ from scipy import signal as sg
 import numpy as np
 import math
 import csv
+import re
 import time
 import pymongo
 from pymongo import MongoClient
@@ -131,7 +132,8 @@ async def on_message(message):
         print("reading csv")
         await image[0].save('quiz.csv')
         with open('quiz.csv', newline='') as q:
-            reader = csv.reader(q, delimiter='~')
+            reader = csv.reader(q)
+            print(reader)
             answer_dict = {'🇦': "A", '🇧': "B", '🇨': "C", '🇩': "D", 
                            '🇪': "E", '🇫': "F", '🇬': "G", '🇭': "F", 
                            '🇮': "I", '🇯': "J"}
@@ -238,8 +240,7 @@ async def on_message(message):
 @client.event
 async def on_reaction_add(rxn, user):
     message = rxn.message
-    reactions = message.reactions
-    if reactions[0].emoji == "💩" and user.name != "Hello There" and message.author.name == "Hello There":
+    if rxn.emoji == "💩" and user.name != "Hello There" and message.author.name == "Hello There":
         client.players[user.name] = 0
     
 @client.event
@@ -288,7 +289,7 @@ async def run(message, Id):
             await channel.send(embed = discord.Embed(title = "You are playing with score deductions", color = discord.Colour.blue()))
         await channel.send("Starting")
         for iteration, row in enumerate(questions):
-            if len(list(client.players.keys())) == 1:
+            if len(list(client.players.keys())) == 1 and client.elimination:
                 await channel.send(embed = discord.Embed(title = list(client.players.keys())[0] + " wins for being the last survivor!", color = discord.Colour.blue()))
                 podium = discord.Embed(
                     title = "Final Podium",
@@ -298,7 +299,7 @@ async def run(message, Id):
                 podium.add_field(name= "🥇", value= list(client.players.keys())[0], inline=False)
                 await channel.send(embed = podium)
                 break
-            row = row.split("~")                
+            row = row.split("~")               
             def check(rxn, user):
                 if user.name != "Hello There" and user.name in client.players.keys():
                     return True
