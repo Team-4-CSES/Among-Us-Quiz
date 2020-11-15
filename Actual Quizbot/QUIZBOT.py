@@ -1,7 +1,6 @@
 import csv
 import discord
 import asyncio
-import nest_asyncio
 import string, random
 from discord.ext import commands
 import time
@@ -266,8 +265,11 @@ async def run(message, Id):
 async def on_reaction_add(rxn, user):
     message = rxn.message
     reactions = message.reactions
-    if reactions[0].emoji == ":poop:" and user.name != "Bobby Bot" and message.author.name == "Bobby Bot":
+    print(user.name, reactions[0].emoji)
+    if reactions[0].emoji == "💩" and user.name != "Bobby Bot" and message.author.name == "Bobby Bot":
         client.players[user.name] = 0
+
+
 
 tokenIn = open("token.txt", "r+").readline()
 token = tokenIn
