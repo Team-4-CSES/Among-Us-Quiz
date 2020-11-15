@@ -20,6 +20,8 @@ db = cluster["quizInfo"]
 collection = db["quizinfos"]
 
 client.quiz = cluster.quizInfo.quizinfos
+client.elimination = None
+client.players = {}
 
 @client.event
 async def on_ready():
