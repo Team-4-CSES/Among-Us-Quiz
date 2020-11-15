@@ -14,6 +14,7 @@ from PIL import Image
 from PIL import ImageColor
 from scipy import signal as sg
 import numpy as np
+import math
 import csv
 import time
 import pymongo
@@ -27,7 +28,7 @@ token = tokenIn.readline()
 client = commands.Bot(command_prefix = '!')
 mongo = MongoClient(tokenIn.readline())
 client.quiz = mongo.quizInfo.quizinfos
-
+client.elimination = None
 client.players = {}
 
 def myround(x, base=30):
@@ -112,7 +113,6 @@ def decodeMorse(morse_code):
 @client.event
 async def on_ready():
     print("Bot is Ready")
-
 @client.event
 async def on_message(message):
     author = message.author
@@ -252,87 +252,127 @@ async def on_message_delete(message):
 @client.command()
 async def run(message, Id):
     channel = message.channel
-    doc = client.quiz.find_one({"_id": ObjectId(Id)})
-    questions = doc["questions"]
-    answer_dict = {'🇦': "A", '🇧': "B", '🇨': "C", '🇩': "D", 
-                           '🇪': "E", '🇫': "F", '🇬': "G", '🇭': "F", 
-                           '🇮': "I", '🇯': "J"}
-    
-    await channel.send(embed = discord.Embed(title = "You have 10 seconds to react to the reaction below and join the game.", color = discord.Colour.blue()))
-    InvMsg = await channel.history().get(author__name='Hello There')
-    await InvMsg.add_reaction("💩")
-    time.sleep(10)
-    await channel.send("Starting")
-    for row in questions:
-        row = row.split("~")
-        if row[0] == "done":
-            Final = discord.Embed(
-                title = "Final Podium",
-                
-                color = discord.Colour.gold()
-                )
-            rank = 1
-            medals = ["🥇", "🥈", "🥉"]
-            for player in list(client.players.keys())[:3]:
-                Final.add_field(name= medals[rank-1], value= player, inline=False)
-                rank += 1
-            await channel.send(embed=Final)
-            client.players = {}
-            break
-        def check(rxn, user):
-            if user.name != "Hello There" and user.name in client.players.keys():
+    try:
+        doc = client.quiz.find_one({"_id": ObjectId(Id)})
+        questions = doc["questions"]
+        answer_dict = {'🇦': "A", '🇧': "B", '🇨': "C", '🇩': "D", 
+                               '🇪': "E", '🇫': "F", '🇬': "G", '🇭': "F", 
+                               '🇮': "I", '🇯': "J"}
+        
+        await channel.send(embed = discord.Embed(title = "You have 10 seconds to react to the reaction below and join the game.", color = discord.Colour.blue()))
+        InvMsg = await channel.history().get(author__name='Hello There')
+        await InvMsg.add_reaction("💩")       
+        time.sleep(10)
+        InvMsg = await channel.history().get(author__name='Hello There')
+        if InvMsg.reactions[0].count <= 1:
+            await channel.send(embed = discord.Embed(title = "No players joined.  Ending the game.", color = discord.Colour.red()))
+            return
+        await channel.send(embed = discord.Embed(title = "Press 🇦 to play by elimination (wrong answers get you kicked) or 🇧 for subtraction (wrong answers lead to a score deduction).", color = discord.Colour.blue()))
+        OptMsg = await channel.history().get(author__name='Hello There')
+        await OptMsg.add_reaction("🇦")
+        await OptMsg.add_reaction("🇧")
+        # MAKE IT SO THAT ONLY PEOPLE IN THE GAME CAN VOTE
+        def setCheck(rxn, user):
+            if rxn.emoji in ["🇦", "🇧"] and user.name in client.players.keys():
+                if rxn.emoji == "🇦":
+                    client.elimination = True
+                else:
+                    client.elimination = False
                 return True
             else:
                 return False
-        def equation(x):
-            return 300-300*(x/(int(row[3])/1.5))**2
-        embed = discord.Embed(
-            title = "Question " + row[0],
-            description = row[1],
-            
-            colour = discord.Colour.blue()
-        )
-        emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
-        for i, e  in enumerate(emojis[:int(row[4])]):
-            embed.add_field(name=e, value=row[5+i])                    
-        embed.add_field(name='Time:', value=row[3]+" seconds",inline=False)
-        await channel.send(embed = embed)
-        emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
-        msg = await channel.history().get(author__name='Hello There')
-        for emoji in emojis[:int(row[4])]:
-            await msg.add_reaction(emoji)
-        answer = "Fail"
-        t0 = time.perf_counter()
-        try:
-            answer = await client.wait_for("reaction_add", timeout=float(row[3]), check=check)
-        except:
-            await channel.send("No Response Given")
-        if type(answer) != str:
-            t1 = time.perf_counter()
-            times = t1 - t0
-            pts = equation(times)
-            if pts < 10:
-                pts = 10
-            print("Time:", times)
-            if answer[0].emoji in answer_dict.keys() and answer_dict[answer[0].emoji] == row[2]:
-                await channel.send("Correct!  " + answer[1].name + " will be awarded " + str(int(round(pts, 0))) + " points.")
-                client.players[answer[1].name] += int(round(pts, 0))
-            else: 
-                client.players.pop(answer[1].name, None)
-                await channel.send("WRONG! The correct answer is " + row[2])
-                await channel.send(answer[1].name + " will be kicked!")
-        client.players = dict(sorted(client.players.items(), key = lambda kv:kv[1], reverse=True))
-        print(client.players)
-        rankings = discord.Embed(
-            title = "Rankings",
-            
-            color = discord.Colour.red()
+        setting = await client.wait_for("reaction_add", check=setCheck)
+        if client.elimination:
+            await channel.send(embed = discord.Embed(title = "You are playing by elimination", color = discord.Colour.blue()))
+        else:
+            await channel.send(embed = discord.Embed(title = "You are playing with score deductions", color = discord.Colour.blue()))
+        await channel.send("Starting")
+        for iteration, row in enumerate(questions):
+            if len(list(client.players.keys())) == 1:
+                await channel.send(embed = discord.Embed(title = list(client.players.keys())[0] + " wins for being the last survivor!", color = discord.Colour.blue()))
+                podium = discord.Embed(
+                    title = "Final Podium",
+                
+                    color = discord.Colour.gold()
+                )
+                podium.add_field(name= "🥇", value= list(client.players.keys())[0], inline=False)
+                await channel.send(embed = podium)
+                break
+            row = row.split("~")                
+            def check(rxn, user):
+                if user.name != "Hello There" and user.name in client.players.keys():
+                    return True
+                else:
+                    return False
+            def equation(x):
+                return 300-300*(x/(int(row[3])/1.5))**2
+            embed = discord.Embed(
+                title = "Question " + row[0],
+                description = row[1],
+                
+                colour = discord.Colour.blue()
             )
-        rank = 1
-        for player in client.players.keys():
-            rankings.add_field(name= str(rank)+". "+player, value= str(client.players[player])+" point", inline=False)
-            rank += 1
-        await channel.send(embed=rankings)
+            emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
+            for i, e  in enumerate(emojis[:int(row[4])]):
+                embed.add_field(name=e, value=row[5+i])                    
+            embed.add_field(name='Time:', value=row[3]+" seconds",inline=False)
+            await channel.send(embed = embed)
+            emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
+            msg = await channel.history().get(author__name='Hello There')
+            for emoji in emojis[:int(row[4])]:
+                await msg.add_reaction(emoji)
+            answer = "Fail"
+            t0 = time.perf_counter()
+            try:
+                answer = await client.wait_for("reaction_add", timeout=float(row[3]), check=check)
+            except:
+                await channel.send("No Response Given")
+            if type(answer) != str:
+                t1 = time.perf_counter()
+                times = t1 - t0
+                pts = equation(times)
+                if pts < 10:
+                    pts = 10
+                print("Time:", times)
+                if answer[0].emoji in answer_dict.keys() and answer_dict[answer[0].emoji] == row[2]:
+                    await channel.send("Correct!  " + answer[1].name + " will be awarded " + str(int(round(pts, 0))) + " points.")
+                    client.players[answer[1].name] += int(round(pts, 0))
+                else: 
+                    await channel.send("WRONG! The correct answer is " + row[2])
+                    if client.elimination:
+                        client.players.pop(answer[1].name, None)
+                        await channel.send(answer[1].name + " will be kicked!")
+                    else:
+                        client.players[answer[1].name] -= int(round(pts, 0))
+                        await channel.send(answer[1].name + " will lose " + str(int(round(pts, 0))) + " points!")
+            client.players = dict(sorted(client.players.items(), key = lambda kv:kv[1], reverse=True))
+            print(client.players)
+            rankings = discord.Embed(
+                title = "Rankings",
+                
+                color = discord.Colour.red()
+                )
+            rank = 1
+            for player in client.players.keys():
+                rankings.add_field(name= str(rank)+". "+player, value= str(client.players[player])+" point", inline=False)
+                rank += 1
+            await channel.send(embed=rankings)
+            if iteration == len(questions)-1:
+                Final = discord.Embed(
+                    title = "Final Podium",
+                    
+                    color = discord.Colour.gold()
+                    )
+                rank = 1
+                medals = ["🥇", "🥈", "🥉"]
+                for player in list(client.players.keys())[:3]:
+                    Final.add_field(name= medals[rank-1], value= player, inline=False)
+                    rank += 1
+                await channel.send(embed=Final)
+                client.players = {}
+                break
+    except:
+        await channel.send("Invalid Quiz Code Given")
     
 client.run(token)
     
