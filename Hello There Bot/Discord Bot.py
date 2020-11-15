@@ -253,7 +253,7 @@ async def on_message_delete(message):
 async def run(message, Id):
     channel = message.channel
     try:
-        doc = client.quiz.find_one({"_id": ObjectId(Id)})
+        doc = client.quiz.find_one({"_id": Id})
         questions = doc["questions"]
         answer_dict = {'🇦': "A", '🇧': "B", '🇨': "C", '🇩': "D", 
                                '🇪': "E", '🇫': "F", '🇬': "G", '🇭': "F", 
