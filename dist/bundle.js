@@ -63,7 +63,7 @@
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "f0e29f0d3d8520f87969";
+/******/ 	var hotCurrentHash = "c0c437765ae6543df0ac";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -1404,7 +1404,7 @@ eval("exports = module.exports = __webpack_require__(/*! ../css-loader/lib/css-b
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("exports = module.exports = __webpack_require__(/*! ../../../../node_modules/css-loader/lib/css-base.js */ \"./node_modules/css-loader/lib/css-base.js\")(false);\n// imports\n\n\n// module\nexports.push([module.i, \".mainContent {\\n  margin: 1rem;\\n  font-family: Arial, Helvetica, sans-serif;\\n  background-color: rgba(255,255,255,0.1);\\n  padding: 2em 10em;\\n  margin: 1em 10em;\\n  height: 50em;\\n}\\nh1 {\\n  font-size: 3em;\\n}\\nh2 {\\n  font-size: 2em;\\n}\\nh3 {\\n  text-decoration: underline;\\n  font-size: 2em;\\n}\\np {\\n  font-size: 1.5em;\\n}\", \"\"]);\n\n// exports\n\n\n//# sourceURL=webpack:///./website/client/src/style/mainContent.css?./node_modules/css-loader");
+eval("exports = module.exports = __webpack_require__(/*! ../../../../node_modules/css-loader/lib/css-base.js */ \"./node_modules/css-loader/lib/css-base.js\")(false);\n// imports\n\n\n// module\nexports.push([module.i, \".mainContent {\\r\\n  margin: 1rem;\\r\\n  font-family: Arial, Helvetica, sans-serif;\\r\\n  background-color: rgba(255,255,255,0.1);\\r\\n  padding: 2em 10em;\\r\\n  margin: 1em 10em;\\r\\n  height: 50em;\\r\\n}\\r\\nh1 {\\r\\n  font-size: 3em;\\r\\n}\\r\\nh2 {\\r\\n  font-size: 2em;\\r\\n}\\r\\nh3 {\\r\\n  text-decoration: underline;\\r\\n  font-size: 2em;\\r\\n}\\r\\np {\\r\\n  font-size: 1.5em;\\r\\n}\", \"\"]);\n\n// exports\n\n\n//# sourceURL=webpack:///./website/client/src/style/mainContent.css?./node_modules/css-loader");
 
 /***/ }),
 
@@ -1415,7 +1415,7 @@ eval("exports = module.exports = __webpack_require__(/*! ../../../../node_module
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("exports = module.exports = __webpack_require__(/*! ../../../../node_modules/css-loader/lib/css-base.js */ \"./node_modules/css-loader/lib/css-base.js\")(false);\n// imports\n\n\n// module\nexports.push([module.i, \".navBar {\\n  display: flex;\\n  width: stretch;\\n  background-color: hsl(225, 50%, 15%);\\n  height: 4em;\\n  align-items: center;\\n  padding: 0em 2em;\\n}\\n\\na {\\n  font-family: sans-serif;\\n  font-size: 1em;\\n  color: white;\\n  padding: 1em;\\n}\", \"\"]);\n\n// exports\n\n\n//# sourceURL=webpack:///./website/client/src/style/navbar.css?./node_modules/css-loader");
+eval("exports = module.exports = __webpack_require__(/*! ../../../../node_modules/css-loader/lib/css-base.js */ \"./node_modules/css-loader/lib/css-base.js\")(false);\n// imports\n\n\n// module\nexports.push([module.i, \".navBar {\\r\\n  display: flex;\\r\\n  width: stretch;\\r\\n  background-color: hsl(225, 50%, 15%);\\r\\n  height: 4em;\\r\\n  align-items: center;\\r\\n  padding: 0em 2em;\\r\\n}\\r\\n\\r\\na {\\r\\n  font-family: sans-serif;\\r\\n  font-size: 1em;\\r\\n  color: white;\\r\\n  padding: 1em;\\r\\n}\", \"\"]);\n\n// exports\n\n\n//# sourceURL=webpack:///./website/client/src/style/navbar.css?./node_modules/css-loader");
 
 /***/ }),
 
@@ -1426,7 +1426,7 @@ eval("exports = module.exports = __webpack_require__(/*! ../../../../node_module
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("exports = module.exports = __webpack_require__(/*! ../../../../node_modules/css-loader/lib/css-base.js */ \"./node_modules/css-loader/lib/css-base.js\")(false);\n// imports\n\n\n// module\nexports.push([module.i, \"body{\\n  color: black;\\n  background-color: rgb(201, 201, 201);\\n  text-align: center;\\n  margin: 0 0;\\n  padding: 0 0;\\n}\", \"\"]);\n\n// exports\n\n\n//# sourceURL=webpack:///./website/client/src/style/stylesheet.css?./node_modules/css-loader");
+eval("exports = module.exports = __webpack_require__(/*! ../../../../node_modules/css-loader/lib/css-base.js */ \"./node_modules/css-loader/lib/css-base.js\")(false);\n// imports\n\n\n// module\nexports.push([module.i, \"body{\\r\\n  color: black;\\r\\n  background-color: white;\\r\\n  text-align: center;\\r\\n  margin: 0 0;\\r\\n  padding: 0 0;\\r\\n}\", \"\"]);\n\n// exports\n\n\n//# sourceURL=webpack:///./website/client/src/style/stylesheet.css?./node_modules/css-loader");
 
 /***/ }),
 
@@ -1931,7 +1931,7 @@ eval("var g;\n\n// This works in non-strict mode\ng = (function() {\n\treturn th
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"insertQuiz\", function() { return insertQuiz; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"getAllQuizzes\", function() { return getAllQuizzes; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"updateQuizById\", function() { return updateQuizById; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"deleteQuizById\", function() { return deleteQuizById; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"getQuizById\", function() { return getQuizById; });\n/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! axios */ \"./node_modules/axios/index.js\");\n/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_0__);\n\nvar api = axios__WEBPACK_IMPORTED_MODULE_0___default.a.create({\n  baseURL: \"http://localhost:9000/api\"\n});\nvar insertQuiz = function insertQuiz(payload) {\n  return api.post(\"/quiz\", payload);\n};\nvar getAllQuizzes = function getAllQuizzes() {\n  return api.get(\"/quizzes\");\n};\nvar updateQuizById = function updateQuizById(id, payload) {\n  return api.put(\"/quiz/\".concat(id), payload);\n};\nvar deleteQuizById = function deleteQuizById(id) {\n  return api[\"delete\"](\"/quiz/\".concat(id));\n};\nvar getQuizById = function getQuizById(id) {\n  return api.get(\"/quiz/\".concat(id));\n};\nvar apis = {\n  insertQuiz: insertQuiz,\n  getAllQuizzes: getAllQuizzes,\n  updateQuizById: updateQuizById,\n  deleteQuizById: deleteQuizById,\n  getQuizById: getQuizById\n};\n/* harmony default export */ __webpack_exports__[\"default\"] = (apis);\n\n//# sourceURL=webpack:///./website/api/index.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"insertQuiz\", function() { return insertQuiz; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"getAllQuizzes\", function() { return getAllQuizzes; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"updateQuizById\", function() { return updateQuizById; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"deleteQuizById\", function() { return deleteQuizById; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"getQuizById\", function() { return getQuizById; });\n/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! axios */ \"./node_modules/axios/index.js\");\n/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_0__);\n\nvar api = axios__WEBPACK_IMPORTED_MODULE_0___default.a.create({\n  baseURL: \"http://192.168.0.20:9000/api\"\n});\nvar insertQuiz = function insertQuiz(payload) {\n  return api.post(\"/quiz\", payload);\n};\nvar getAllQuizzes = function getAllQuizzes() {\n  return api.get(\"/quizzes\");\n};\nvar updateQuizById = function updateQuizById(id, payload) {\n  return api.put(\"/quiz/\".concat(id), payload);\n};\nvar deleteQuizById = function deleteQuizById(id) {\n  return api[\"delete\"](\"/quiz/\".concat(id));\n};\nvar getQuizById = function getQuizById(id) {\n  return api.get(\"/quiz/\".concat(id));\n};\nvar apis = {\n  insertQuiz: insertQuiz,\n  getAllQuizzes: getAllQuizzes,\n  updateQuizById: updateQuizById,\n  deleteQuizById: deleteQuizById,\n  getQuizById: getQuizById\n};\n/* harmony default export */ __webpack_exports__[\"default\"] = (apis);\n\n//# sourceURL=webpack:///./website/api/index.js?");
 
 /***/ }),
 
