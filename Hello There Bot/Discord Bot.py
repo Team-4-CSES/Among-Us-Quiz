@@ -147,6 +147,8 @@ async def on_message(message):
         else:
             morse = False
             break
+    if content == "--------------":
+        morse = False
     print("{}: {}".format(author, content))
     if "hello there" in content.lower():
         await channel.send("General Kenobi")
@@ -286,7 +288,7 @@ async def run(message, Id):
                 rankings.add_field(name= str(rank)+". "+player, value= str(client.players[player])+" point", inline=False)
                 rank += 1
             await channel.send(embed=rankings)
-            time.sleep(2)
+            time.sleep(5)
             if iteration == len(questions)-1:
                 Final = discord.Embed(
                     title = "Final Podium",
@@ -308,6 +310,7 @@ async def run(message, Id):
 async def upload(ctx, filetype):
 
     validfiletypes = ["url", "csv", "excel", "xls"]
+    author = ctx.author
 
     #checks if parameter is good
     filetypechecker = False
@@ -339,7 +342,7 @@ async def upload(ctx, filetype):
             return filename
         
         try:
-            message = await client.wait_for('message', timeout=10.0, check=check)
+            message = await client.wait_for('message', timeout=30.0, check=check)
             file = message.attachments
             unique_quizcode = quizcodemaker(client.quiz)
             ctx.send("survived this far!")
@@ -364,15 +367,15 @@ async def upload(ctx, filetype):
                 if userAnswer.content.lower() == "y":
 
                     #inserts the code into the quiz key documents
-                    x = client.quiz.update({"_id": "Key"}, {'$addToSet': {"Codes": unique_quizcode}})
+                    x = client.quiz.update_one({"_id": "Key"}, {'$addToSet': {"Codes": unique_quizcode}})
 
-                    client.quiz.insert_one({"_id": unique_quizcode, "questions": []})
+                    client.quiz.insert_one({"_id": unique_quizcode, "name": str(author), "quizName": str(file[0].filename)[:-4], "questions": []})
 
                     with open(unique_filename, newline='') as csvfile:
                         reader = csv.reader(csvfile, delimiter=',')
                         for row in reader:
                             y = '~'.join(row)
-                            x = client.quiz.update({"_id": unique_quizcode}, {'$addToSet': {"questions": y}})
+                            x = client.quiz.update_one({"_id": unique_quizcode}, {'$addToSet': {"questions": y}})
 
                     await ctx.channel.send("Success! Your quiz set ID is " + unique_quizcode)
                     os.remove(unique_filename)
@@ -391,5 +394,23 @@ async def upload(ctx, filetype):
             await ctx.channel.send("You timed out!")
             await ctx.channel.send("Please resend the command if you still wish to upload a quiz set.")
     
-client.run(token)
+@client.command()
+async def myQuiz(ctx):
     
+    author = ctx.author
+    channel = ctx.channel
+    
+    embed = discord.Embed(
+        title = "Quizzes made by " + str(author),
+        
+        color = discord.Colour.purple()
+        )
+    docs = client.quiz.find({"name": str(author)})
+    for doc in docs:
+        code = doc["_id"]
+        name = doc["quizName"]
+        embed.add_field(name = code, value = name, inline = False)
+    await channel.send(embed=embed)
+        
+
+client.run(token)
