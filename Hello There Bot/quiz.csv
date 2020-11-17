@@ -1,6 +1,7 @@
-1~Is water wet?~B~7~2~True~False
-2~Are hotdogs sandwiches?~A~4~2~True~False
-3~Is cereal a soup?~B~6~2~True~False
-4~Did Lakers win?~A~8~2~True~False
-5~Let's say hypothetically, a woodchuck can chuck wood.  Let's say even, that a woodchuck can chuck a lot of wood.  In this hypothetical scenario I have concocted, how much wood should a woodchuck be able to chuck if this woodchuck could indeed chuck wood?~C~15~4~200 lbs~500 lbs~700 lbs~1 ton
-done
+1,Mammoths are cool.,A,10,2,TRUE,FALSE,,,
+2,The mitochondria is the ______ of the cell.,C,10,3,Reproductive System,Cell,Powerhouse,,
+3,"From my point of view, the ______ are evil!",B,10,4,Sith,Jedi,Hutts,Empire,
+4,Who's the best Chris?,E,10,5,Pine,Pratt,Hemsworth,Evan,All of the above
+5,"What channel is the phrase ""SHUT UP"" from?",A,10,4,Smosh,Pewdiepie,Markiplier,LeafyisHere,
+6,What planet are we on?,C,10,3,Jupiter,Venus,Earth,,
+7,Who is the old man in Up?,A,5,2,Carl Fredricksen,Russell,,,
