@@ -36,6 +36,7 @@ async def on_message(message):
         InvMsg = await channel.history().get(author__name='Nicole Tran')
         await InvMsg.add_reaction("💩")
         time.sleep(10)
+
         await channel.send("Starting")
         print("reading csv")
         await image[0].save('quiz.csv')
