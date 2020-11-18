@@ -95,7 +95,7 @@ async def upload(ctx, filetype):
                     with open(unique_filename, newline='') as csvfile:
                         reader = csv.reader(csvfile, delimiter=',')
                         for row in reader:
-                            y = ''.join(row)
+                            y = '~'.join(row)
                             x = client.quiz.update({"_id": unique_quizcode}, {'$addToSet': {"questions": y}})
 
                     await ctx.channel.send("Success! Your quiz set ID is " + unique_quizcode)

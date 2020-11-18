@@ -23,6 +23,7 @@ import time
 import pymongo
 from pymongo import MongoClient
 from bson.objectid import ObjectId
+import requests
 nest_asyncio.apply()
 
 tokenIn = open("Token Key.txt", "r+")
@@ -220,7 +221,7 @@ async def run(message, Id):
                 podium.add_field(name= "🥇", value= list(client.players.keys())[0], inline=False)
                 await channel.send(embed = podium)
                 break
-            row = row.split("~")
+            row = row.split("ȟ̵̢̨̤͕̔͊̓͒ͅ")  
             for i in range(0, len(row)):
                 if row[i] == '':
                     row[i] = False
@@ -232,30 +233,32 @@ async def run(message, Id):
                 else:
                     return False
             def equation(x):
-                return 300-300*(x/(int(row[3])/1.5))**2
+                return 300-300*(x/(int(row[4])/1.5))**2
             embed = discord.Embed(
                 title = "Question " + row[0],
                 description = row[1],
                 
                 colour = discord.Colour.blue()
             )
+            if row[2] != "None":
+                embed.set_image(url=row[2])
             emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
-            for i, e  in enumerate(emojis[:len(row[4:])]):
-                if row[4+i] == "TRUE":
-                    row[4+i] = "True"
-                elif row[4+i] == "FALSE":
-                    row[4+i] = "False"
-                embed.add_field(name=e, value=row[4+i])                    
-            embed.add_field(name='Time:', value=row[3]+" seconds",inline=False)
+            for i, e  in enumerate(emojis[:len(row[5:])]):
+                if row[5+i] == "TRUE":
+                    row[5+i] = "True"
+                elif row[5+i] == "FALSE":
+                    row[5+i] = "False"
+                embed.add_field(name=e, value=row[5+i])                    
+            embed.add_field(name='Time:', value=row[4]+" seconds",inline=False)
             await channel.send(embed = embed)
             emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
             msg = await channel.history().get(author__name='Hello There')
-            for emoji in emojis[:len(row[4:])]:
+            for emoji in emojis[:len(row[5:])]:
                 await msg.add_reaction(emoji)
             answer = "Fail"
             t0 = time.perf_counter()
             try:
-                answer = await client.wait_for("reaction_add", timeout=float(row[3]), check=check)
+                answer = await client.wait_for("reaction_add", timeout=float(row[4]), check=check)
             except:
                 await channel.send("No Response Given")
             if type(answer) != str:
@@ -265,11 +268,11 @@ async def run(message, Id):
                 if pts < 10:
                     pts = 10
                 print("Time:", times)
-                if answer[0].emoji in answer_dict.keys() and answer_dict[answer[0].emoji] == row[2]:
+                if answer[0].emoji in answer_dict.keys() and answer_dict[answer[0].emoji] == row[3]:
                     await channel.send("Correct!  " + answer[1].name + " will be awarded " + str(int(round(pts, 0))) + " points.")
                     client.players[answer[1].name] += int(round(pts, 0))
                 else: 
-                    await channel.send("WRONG! The correct answer is " + row[2])
+                    await channel.send("WRONG! The correct answer is " + row[3])
                     if client.elimination:
                         client.players.pop(answer[1].name, None)
                         await channel.send(answer[1].name + " will be kicked!")
@@ -311,7 +314,8 @@ async def upload(ctx, filetype):
 
     validfiletypes = ["url", "csv", "excel", "xls"]
     author = ctx.author
-
+    channel = ctx.channel
+    
     #checks if parameter is good
     filetypechecker = False
     for i in range(len(validfiletypes)):
@@ -345,15 +349,14 @@ async def upload(ctx, filetype):
             message = await client.wait_for('message', timeout=30.0, check=check)
             file = message.attachments
             unique_quizcode = quizcodemaker(client.quiz)
-            ctx.send("survived this far!")
             unique_filename = unique_quizcode + ".csv"
 
             if len(file) > 0 and file[0].filename.endswith('.csv'):
-                await file[0].save(unique_filename)
-                with open(unique_filename, newline='') as q:
-                    reader = csv.reader(q, delimiter='~')
-                    for row in reader:
-                        await ctx.channel.send(row)
+                quiz = requests.get(file[0].url).content.decode("utf-8")
+                quiz = quiz.split("\n")
+                quiz = csv.reader(quiz)
+                for question in quiz:
+                    await channel.send(question)
                         
             await ctx.channel.send("--------------")
             await ctx.channel.send("Is this the quiz set you wish to create? (Y/N)")
@@ -371,24 +374,21 @@ async def upload(ctx, filetype):
 
                     client.quiz.insert_one({"_id": unique_quizcode, "name": str(author), "quizName": str(file[0].filename)[:-4], "questions": []})
 
-                    with open(unique_filename, newline='') as csvfile:
-                        reader = csv.reader(csvfile, delimiter=',')
-                        for row in reader:
-                            y = '~'.join(row)
-                            x = client.quiz.update_one({"_id": unique_quizcode}, {'$addToSet': {"questions": y}})
+                    quiz = requests.get(file[0].url).content.decode("utf-8")
+                    quiz = quiz.split("\n")
+                    quiz = csv.reader(quiz)
+                    for row in quiz:
+                        y = 'ȟ̵̢̨̤͕̔͊̓͒ͅ'.join(row)
+                        x = client.quiz.update_one({"_id": unique_quizcode}, {'$addToSet': {"questions": y}})
 
                     await ctx.channel.send("Success! Your quiz set ID is " + unique_quizcode)
-                    os.remove(unique_filename)
-
 
                 elif userAnswer.content.lower() == "n":
-                    await ctx.channel.send("Got it... the quizset has been deleted.")
-                    os.remove(unique_filename)
+                    await ctx.channel.send("Got it.")
 
             except asyncio.TimeoutError:
                 await ctx.channel.send("You timed out!")
                 await ctx.channel.send("Please resend the command if you still wish to upload a quiz set.")
-                os.remove(unique_filename)
 
         except asyncio.TimeoutError:
             await ctx.channel.send("You timed out!")
