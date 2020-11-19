@@ -137,11 +137,11 @@ async def on_message(message):
             Image.fromarray(images).save("New.jpg")
             await channel.send(file=discord.File('New.jpg'))
             await channel.send("My name is Miles Morales and for the last 2 seconds, I've been the one and only Schpiderman.")
-    if "spiderman" in message.content.lower():
-        await channel.send("Send image (with white or transparent background) with three words separated by a \"/\" that describes the following physical aspects of his suit:")
-        await channel.send("1. What color is the face and chest?")
-        await channel.send("2. What color is the side and legs?")
-        await channel.send("3. What color is the spider insignia and suit lines?")
+    #if "spiderman" in message.content.lower():
+     #   await channel.send("Send image (with white or transparent background) with three words separated by a \"/\" that describes the following physical aspects of his suit:")
+      #  await channel.send("1. What color is the face and chest?")
+       # await channel.send("2. What color is the side and legs?")
+        #await channel.send("3. What color is the spider insignia and suit lines?")
     for i in content:
         if i in '/.- ':
             morse = True
@@ -162,7 +162,10 @@ async def on_message(message):
 @client.event
 async def on_reaction_add(rxn, user):
     message = rxn.message
-    if rxn.emoji == "💩" and user.name != "Hello There" and message.author.name == "Hello There":
+    channel = message.channel
+    
+    LastMsg = await channel.history().get(author__name='Hello There')
+    if rxn.emoji == "💩" and user.name != "Hello There" and message.author.name == "Hello There" and LastMsg == message:
         client.players[user.name] = 0
     
 @client.event
@@ -228,7 +231,11 @@ async def run(message, Id):
             for i in range(0, row.count(False)):
                 row.remove(False)
             def check(rxn, user):
-                if user.name != "Hello There" and user.name in client.players.keys():
+                message = rxn.message
+                if len(message.embeds) == 0:
+                    print("No embeds")
+                    return False
+                if user.name != "Hello There" and user.name in client.players.keys() and message.embeds[0].title == "Question " + str(row[0]):
                     return True
                 else:
                     return False
@@ -241,7 +248,10 @@ async def run(message, Id):
                 colour = discord.Colour.blue()
             )
             if row[2] != "None":
-                embed.set_image(url=row[2])
+                #e = discord.Embed(color=discord.Colour.default())
+                #e.set_image(url = row[2])
+                #await channel.send(embed = e)
+                await channel.send(row[2])
             emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
             for i, e  in enumerate(emojis[:len(row[5:])]):
                 if row[5+i] == "TRUE":
