@@ -248,11 +248,13 @@ async def run(message, Id):
                 colour = discord.Colour.blue()
             )
             if row[2] != "None":
-                #e = discord.Embed(color=discord.Colour.default())
-                #e.set_image(url = row[2])
-                #await channel.send(embed = e)
                 await channel.send(row[2])
             emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
+            await channel.send(embed = embed)
+            msg = await channel.history().get(author__name='Hello There')
+            for emoji in emojis[:len(row[5:])]:
+                await msg.add_reaction(emoji)
+            time.sleep(3)
             for i, e  in enumerate(emojis[:len(row[5:])]):
                 if row[5+i] == "TRUE":
                     row[5+i] = "True"
@@ -260,11 +262,7 @@ async def run(message, Id):
                     row[5+i] = "False"
                 embed.add_field(name=e, value=row[5+i])                    
             embed.add_field(name='Time:', value=row[4]+" seconds",inline=False)
-            await channel.send(embed = embed)
-            emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
-            msg = await channel.history().get(author__name='Hello There')
-            for emoji in emojis[:len(row[5:])]:
-                await msg.add_reaction(emoji)
+            await msg.edit(embed=embed)
             answer = "Fail"
             t0 = time.perf_counter()
             try:
