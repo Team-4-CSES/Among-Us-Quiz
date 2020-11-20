@@ -18,6 +18,7 @@ import pymongo
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 import requests
+#import keep_alive
 nest_asyncio.apply()
 
 tokenIn = open("Token Key.txt", "r+")
@@ -253,7 +254,7 @@ async def upload(ctx, filetype):
                     #inserts the code into the quiz key documents
                     x = client.quiz.update_one({"_id": "Key"}, {'$addToSet': {"Codes": unique_quizcode}})
 
-                    client.quiz.insert_one({"_id": unique_quizcode, "name": str(author), "quizName": str(file[0].filename)[:-4], "questions": []})
+                    client.quiz.insert_one({"_id": unique_quizcode, "name": str(author.id), "quizName": str(file[0].filename)[:-4], "questions": []})
 
                     quiz = requests.get(file[0].url).content.decode("utf-8")
                     quiz = quiz.split("\n")
@@ -288,7 +289,7 @@ async def myQuiz(ctx):
         
         color = discord.Colour.purple()
         )
-    docs = client.quiz.find({"name": str(author)})
+    docs = client.quiz.find({"name": str(author.id)})
     for doc in docs:
         code = doc["_id"]
         name = doc["quizName"]
@@ -310,4 +311,5 @@ async def help(ctx):
     embed.add_field(name= "!myQuiz", value = "Lets you view the keys and names of the quizzes you uploaded", inline = False)
     await channel.send(embed=embed)
 
+#keep_alive.keep_alive()
 client.run(token)
