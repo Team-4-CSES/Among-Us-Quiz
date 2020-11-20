@@ -35,6 +35,7 @@ client.players = {}
 @client.event
 async def on_ready():
     print("Bot is Ready")
+    await client.change_presence(activity=discord.Game("!help | <insert url here>"))
 
 @client.event
 async def on_reaction_add(rxn, user):
