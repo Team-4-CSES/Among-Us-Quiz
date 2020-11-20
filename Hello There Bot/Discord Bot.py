@@ -30,6 +30,7 @@ tokenIn = open("Token Key.txt", "r+")
 token = tokenIn.readline()
 
 client = commands.Bot(command_prefix = '!')
+client.remove_command('help')
 mongo = MongoClient(tokenIn.readline())
 db = mongo["quizInfo"]
 client.quiz = mongo.quizInfo.quizinfos
@@ -230,6 +231,7 @@ async def run(message, Id):
                     row[i] = False
             for i in range(0, row.count(False)):
                 row.remove(False)
+            print(row)
             def check(rxn, user):
                 message = rxn.message
                 if len(message.embeds) == 0:
@@ -248,20 +250,21 @@ async def run(message, Id):
                 colour = discord.Colour.blue()
             )
             if row[2] != "None":
-                await channel.send(row[2])
+                embed.set_image(url = row[2])
+                #await channel.send(row[2])
             emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
             await channel.send(embed = embed)
             msg = await channel.history().get(author__name='Hello There')
             for emoji in emojis[:len(row[5:])]:
                 await msg.add_reaction(emoji)
-            time.sleep(3)
+            time.sleep(1.5)
             for i, e  in enumerate(emojis[:len(row[5:])]):
                 if row[5+i] == "TRUE":
                     row[5+i] = "True"
                 elif row[5+i] == "FALSE":
                     row[5+i] = "False"
                 embed.add_field(name=e, value=row[5+i])                    
-            embed.add_field(name='Time:', value=row[4]+" seconds",inline=False)
+            embed.set_footer(text = "You have " + row[4] + " seconds")
             await msg.edit(embed=embed)
             answer = "Fail"
             t0 = time.perf_counter()
@@ -362,8 +365,10 @@ async def upload(ctx, filetype):
             if len(file) > 0 and file[0].filename.endswith('.csv'):
                 quiz = requests.get(file[0].url).content.decode("utf-8")
                 quiz = quiz.split("\n")
-                quiz = csv.reader(quiz)
-                for question in quiz:
+                quiz = list(csv.reader(quiz))
+                for question in quiz[6:]:
+                    if set(list(question)) == {''}:
+                        continue
                     await channel.send(question)
                         
             await ctx.channel.send("--------------")
@@ -384,8 +389,10 @@ async def upload(ctx, filetype):
 
                     quiz = requests.get(file[0].url).content.decode("utf-8")
                     quiz = quiz.split("\n")
-                    quiz = csv.reader(quiz)
-                    for row in quiz:
+                    quiz = list(csv.reader(quiz))
+                    for row in quiz[6:]:
+                        if set(list(row)) == {''}:
+                            continue
                         y = 'ȟ̵̢̨̤͕̔͊̓͒ͅ'.join(row)
                         x = client.quiz.update_one({"_id": unique_quizcode}, {'$addToSet': {"questions": y}})
 
@@ -419,6 +426,20 @@ async def myQuiz(ctx):
         name = doc["quizName"]
         embed.add_field(name = code, value = name, inline = False)
     await channel.send(embed=embed)
+
+@client.command()
+async def help(ctx):
+    channel = ctx.channel
+    embed = discord.Embed(
+        title = "All Commands",
         
+        color = discord.Colour.gold()
+        )
+    uploadCSV = "This command lets you upload a quiz csv to the database. \n You can find the quiz template at https://docs.google.com/spreadsheets/d/1H1Fg5Lw1hNMRFWkorHuAehRodlmHgKFM8unDjPZMnUg/edit#gid=196296521"
+    embed.add_field(name = "!upload csv", value = uploadCSV, inline = False)
+    run = "This command searches our database for a quiz of key QUIZKEY.  If QUIZKEY is valid, it will start the quiz."
+    embed.add_field(name = "!run QUIZKEY", value = run, inline = False)
+    embed.add_field(name= "!myQuiz", value = "Lets you view the keys and names of the quizzes you uploaded", inline = False)
+    await channel.send(embed=embed)
 
 client.run(token)
