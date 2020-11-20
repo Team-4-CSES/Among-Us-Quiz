@@ -235,10 +235,33 @@ async def upload(ctx, filetype):
                 quiz = requests.get(file[0].url).content.decode("utf-8")
                 quiz = quiz.split("\n")
                 quiz = list(csv.reader(quiz))
-                for question in quiz[6:]:
-                    if set(list(question)) == {''}:
+                EmbedList = []
+                for row in quiz[6:]:
+                    if set(list(row)) == {''}:
                         continue
-                    await channel.send(question)
+                    for i in range(0, len(row)):
+                        if row[i] == "":
+                            row[i] = False
+                    for i in range(0, row.count(False)):
+                        row.remove(False)
+                    embed = discord.Embed(
+                        title = "Question " + row[0],
+                        description = row[1],
+                
+                        colour = discord.Colour.blue()
+                        )
+                    if row[2] != "None":
+                        embed.set_image(url = row[2])
+                    #await channel.send(row[2])
+                    emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
+                    for i, e  in enumerate(emojis[:len(row[5:])]):
+                        if row[5+i] == "TRUE":
+                            row[5+i] = "True"
+                        elif row[5+i] == "FALSE":
+                            row[5+i] = "False"
+                        embed.add_field(name=e, value=row[5+i])                    
+                    embed.set_footer(text = "You have " + row[4] + " seconds")  
+                    await channel.send(embed=embed)
                         
             await ctx.channel.send("--------------")
             await ctx.channel.send("Is this the quiz set you wish to create? (Y/N)")
