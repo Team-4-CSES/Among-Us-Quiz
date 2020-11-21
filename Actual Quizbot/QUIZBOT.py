@@ -319,8 +319,24 @@ async def upload(ctx, filetype):
             try:
                 userAnswer = await client.wait_for('message', timeout=60.0, check=checkanswer)
                 if userAnswer.content.lower() == "y":
-                    # inserts the code into the quiz key documents
+                    privacySetting = "private"
                     quizname = str(file[0].filename)[:-4]
+
+                    await channel.send("Would you like to set this quizset as private or public? (Type \"Public\" or \"Private\")")
+                    try:
+
+                        def checkprivacy(message):
+                            return message.channel == ctx.channel and message.author == ctx.author
+
+                        privacy = await client.wait_for("message", timeout=15.0, check=checkprivacy)
+                        if privacy.content.lower() == "private":
+                            await channel.send("Okay, your quiz set will be private.")
+                        elif privacy.content.lower() == "public":
+                            privacySetting = "public"
+                            await channel.send("Okay, your quiz set will be public.")
+                    except asyncio.TimeoutError:
+                        await ctx.channel.send("You timed out!")
+
                     await channel.send("Your current quiz name is **\"" + quizname + "\"**. Would you like to change it? (Y/N)")
                     try:
                         changeName = await client.wait_for('message', timeout=10.0, check=checkanswer)
@@ -346,7 +362,7 @@ async def upload(ctx, filetype):
 
                                             client.quiz.insert_one(
                                                 {"_id": unique_quizcode, "name": str(author.id), "quizName": quizname,
-                                                 "questions": []})
+                                                 "questions": [], "privacy": privacySetting})
 
                                             quiz = requests.get(file[0].url).content.decode("utf-8")
                                             quiz = quiz.split("\n")
@@ -373,7 +389,7 @@ async def upload(ctx, filetype):
 
                             client.quiz.insert_one(
                                 {"_id": unique_quizcode, "name": str(author.id), "quizName": quizname,
-                                 "questions": []})
+                                 "questions": [], "privacy": privacySetting})
 
                             quiz = requests.get(file[0].url).content.decode("utf-8")
                             quiz = quiz.split("\n")
