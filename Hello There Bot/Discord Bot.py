@@ -31,6 +31,7 @@ db = mongo["quizInfo"]
 client.quiz = mongo.quizInfo.quizinfos
 client.elimination = None
 client.players = {}
+botname = tokenIn.readline()
 
 @client.event
 async def on_ready():
@@ -42,8 +43,8 @@ async def on_reaction_add(rxn, user):
     message = rxn.message
     channel = message.channel
     
-    LastMsg = await channel.history().get(author__name='Hello There')
-    if rxn.emoji == "💩" and user.name != "Hello There" and message.author.name == "Hello There" and LastMsg == message:
+    LastMsg = await channel.history().get(author__name=botname)
+    if rxn.emoji == "💩" and user.name != "Hello There" and message.author.name == botname and LastMsg == message:
         client.players[user.name] = 0
     
 @client.command()
@@ -57,15 +58,15 @@ async def run(message, Id):
                                '🇮': "I", '🇯': "J"}
         
         await channel.send(embed = discord.Embed(title = "You have 10 seconds to react to the reaction below and join the game.", color = discord.Colour.blue()))
-        InvMsg = await channel.history().get(author__name='Hello There')
+        InvMsg = await channel.history().get(author__name=botname)
         await InvMsg.add_reaction("💩")       
         time.sleep(10)
-        InvMsg = await channel.history().get(author__name='Hello There')
+        InvMsg = await channel.history().get(author__name=botname)
         if InvMsg.reactions[0].count <= 1:
             await channel.send(embed = discord.Embed(title = "No players joined.  Ending the game.", color = discord.Colour.red()))
             return
         await channel.send(embed = discord.Embed(title = "Press 🇦 to play by elimination (wrong answers get you kicked) or 🇧 for subtraction (wrong answers lead to a score deduction).", color = discord.Colour.blue()))
-        OptMsg = await channel.history().get(author__name='Hello There')
+        OptMsg = await channel.history().get(author__name=botname)
         await OptMsg.add_reaction("🇦")
         await OptMsg.add_reaction("🇧")
         # MAKE IT SO THAT ONLY PEOPLE IN THE GAME CAN VOTE
@@ -107,7 +108,7 @@ async def run(message, Id):
                 if len(message.embeds) == 0:
                     print("No embeds")
                     return False
-                if user.name != "Hello There" and user.name in client.players.keys() and message.embeds[0].title == "Question " + str(row[0]):
+                if user.name != botname and user.name in client.players.keys() and message.embeds[0].title == "Question " + str(row[0]):
                     return True
                 else:
                     return False
@@ -124,7 +125,7 @@ async def run(message, Id):
                 #await channel.send(row[2])
             emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
             await channel.send(embed = embed)
-            msg = await channel.history().get(author__name='Hello There')
+            msg = await channel.history().get(author__name=botname)
             for emoji in emojis[:len(row[5:])]:
                 await msg.add_reaction(emoji)
             time.sleep(1.5)
@@ -263,7 +264,7 @@ async def upload(ctx, filetype):
 
                 j = 0
                 await channel.send(embed = EmbedList[j])
-                msg = await channel.history().get(author__name='Bobby Bot')
+                msg = await channel.history().get(author__name=botname)
                 await msg.add_reaction("⬅️")
                 await msg.add_reaction("➡️")
                 await msg.add_reaction("✔️")
@@ -287,8 +288,6 @@ async def upload(ctx, filetype):
                         await msg.edit(embed=EmbedList[j])
                     if quizCheck[0].emoji == "✔️":
                         doneChecking = True
-
-
 
             await ctx.channel.send("--------------")
             await ctx.channel.send("Is this the quiz set you wish to create? (Y/N)")
