@@ -192,12 +192,11 @@ async def run(message, Id):
 
 @client.command()
 async def upload(ctx, filetype):
-
-    validfiletypes = ["url", "csv", "excel", "xls"]
+    validfiletypes = ["url", "csv"]
     author = ctx.author
     channel = ctx.channel
-    
-    #checks if parameter is good
+
+    # checks if parameter is good
     filetypechecker = False
     for i in range(len(validfiletypes)):
         if validfiletypes[i] in filetype.lower():
@@ -214,7 +213,6 @@ async def upload(ctx, filetype):
         def check(message):
             return message.attachments[0].filename.endswith('.csv') and message.author == ctx.author
 
-
         # checks if the 4 letter id is unique. If not, creates a new one.
 
         def quizcodemaker(col):
@@ -225,12 +223,11 @@ async def upload(ctx, filetype):
                 if filename in row:
                     quizcodemaker()
             return filename
-        
+
         try:
             message = await client.wait_for('message', timeout=30.0, check=check)
             file = message.attachments
             unique_quizcode = quizcodemaker(client.quiz)
-            unique_filename = unique_quizcode + ".csv"
 
             if len(file) > 0 and file[0].filename.endswith('.csv'):
                 quiz = requests.get(file[0].url).content.decode("utf-8")
@@ -246,24 +243,53 @@ async def upload(ctx, filetype):
                     for i in range(0, row.count(False)):
                         row.remove(False)
                     embed = discord.Embed(
-                        title = "Question " + row[0],
-                        description = row[1],
-                
-                        colour = discord.Colour.blue()
-                        )
+                        title="Question " + row[0],
+                        description=row[1],
+
+                        colour=discord.Colour.blue()
+                    )
                     if row[2] != "None":
-                        embed.set_image(url = row[2])
-                    #await channel.send(row[2])
-                    emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'] 
-                    for i, e  in enumerate(emojis[:len(row[5:])]):
-                        if row[5+i] == "TRUE":
-                            row[5+i] = "True"
-                        elif row[5+i] == "FALSE":
-                            row[5+i] = "False"
-                        embed.add_field(name=e, value=row[5+i])                    
-                    embed.set_footer(text = "You have " + row[4] + " seconds")  
-                    await channel.send(embed=embed)
-                        
+                        embed.set_image(url=row[2])
+                    # await channel.send(row[2])
+                    emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯']
+                    for i, e in enumerate(emojis[:len(row[5:])]):
+                        if row[5 + i] == "TRUE":
+                            row[5 + i] = "True"
+                        elif row[5 + i] == "FALSE":
+                            row[5 + i] = "False"
+                        embed.add_field(name=e, value=row[5 + i])
+                    embed.set_footer(text="You have " + row[4] + " seconds")
+                    EmbedList.append(embed)
+
+                j = 0
+                await channel.send(embed = EmbedList[j])
+                msg = await channel.history().get(author__name='Bobby Bot')
+                await msg.add_reaction("⬅️")
+                await msg.add_reaction("➡️")
+                await msg.add_reaction("✔️")
+                await channel.send("These are the questions you made. Please navigate through them using the arrow keys. Press the checkmark reaction once you're done checking")
+                doneChecking = False
+
+                def checkdirection(reaction, user):
+                    return user == message.author and str(reaction.emoji) == '✔️' or str(reaction.emoji) == '⬅️' or str(reaction.emoji) == '➡️'
+
+                while(doneChecking == False):
+                    quizCheck = await client.wait_for("reaction_add", check=checkdirection)
+                    if quizCheck[0].emoji == "⬅️":
+                        j -= 1
+                        if j < 0:
+                            j = len(EmbedList) - 1
+                        await msg.edit(embed=EmbedList[j])
+                    if quizCheck[0].emoji == "➡️":
+                        j += 1
+                        if j > len(EmbedList) - 1:
+                            j = 0
+                        await msg.edit(embed=EmbedList[j])
+                    if quizCheck[0].emoji == "✔️":
+                        doneChecking = True
+
+
+
             await ctx.channel.send("--------------")
             await ctx.channel.send("Is this the quiz set you wish to create? (Y/N)")
 
@@ -272,13 +298,14 @@ async def upload(ctx, filetype):
 
             try:
                 userAnswer = await client.wait_for('message', timeout=15.0, check=checkanswer)
-                print(userAnswer.content)
                 if userAnswer.content.lower() == "y":
 
-                    #inserts the code into the quiz key documents
+                    # inserts the code into the quiz key documents
                     x = client.quiz.update_one({"_id": "Key"}, {'$addToSet': {"Codes": unique_quizcode}})
 
-                    client.quiz.insert_one({"_id": unique_quizcode, "name": str(author.id), "quizName": str(file[0].filename)[:-4], "questions": []})
+                    client.quiz.insert_one(
+                        {"_id": unique_quizcode, "name": str(author.id), "quizName": str(file[0].filename)[:-4],
+                         "questions": []})
 
                     quiz = requests.get(file[0].url).content.decode("utf-8")
                     quiz = quiz.split("\n")
