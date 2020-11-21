@@ -531,6 +531,5 @@ async def help(ctx):
     embed.add_field(name="!myQuiz", value="Lets you view the keys and names of the quizzes you uploaded", inline=False)
     await channel.send(embed=embed)
 
-
-# keep_alive.keep_alive()
+#keep_alive.keep_alive()
 client.run(token)

@@ -279,7 +279,7 @@ async def upload(ctx, filetype):
                         elif row[5 + i] == "FALSE":
                             row[5 + i] = "False"
                         if ANSWERS[i] == row[3]:
-                            embed.add_field(name=e, value=row[5 + i] + " (answer)")
+                            embed.add_field(name=e, value=row[5 + i] + "(answer)")
                         else:
                             embed.add_field(name=e, value=row[5 + i])
                     embed.set_footer(text="You have " + row[4] + " seconds")
@@ -467,7 +467,7 @@ async def delete(ctx, quizCode):
                 elif row[5 + i] == "FALSE":
                     row[5 + i] = "False"
                 if ANSWERS[i] == row[3]:
-                    embed.add_field(name=e, value=row[5 + i] + " (answer)")
+                    embed.add_field(name=e, value=row[5 + i] + "(answer)")
                 else:
                     embed.add_field(name=e, value=row[5 + i])
             embed.set_footer(text="You have " + row[4] + " seconds")
@@ -540,7 +540,6 @@ async def help(ctx):
     embed.add_field(name="!run QUIZKEY", value=run, inline=False)
     embed.add_field(name="!myQuiz", value="Lets you view the keys and names of the quizzes you uploaded", inline=False)
     embed.add_field(name="!delete QUIZKEY", value="Asks you for confirmation then deletes this QUIZKEY from your bot.")
-    embed.add_field(name="Bot Invitation Link", value="https://discord.com/oauth2/authorize?client_id=765746012282683393&scope=bot&permissions=355392")
     await channel.send(embed=embed)
 
 
