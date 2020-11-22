@@ -6,6 +6,12 @@
   margin: 1em 10em;
   height: 50em;
 }
+a{
+  color: black;
+}
+a:hover {
+  color:black;
+}
 h1 {
   font-size: 3em;
 }
