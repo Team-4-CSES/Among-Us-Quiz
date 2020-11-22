@@ -5,6 +5,7 @@ const MainContent = (props) => {
   return (
     <div className="mainContent">
       <h1>Team 4 Quiz Bot</h1>
+      <a href = "https://discord.com/oauth2/authorize?client_id=765746012282683393&scope=bot&permissions=355392">Invite the Bot!</a>
       <h2>
         This bot allows multiple user to participate in a contest in which they
         answer multiple choice questions uploaded by a user onto a server. There
