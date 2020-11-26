@@ -443,6 +443,9 @@ async def delete(ctx, quizCode):
         channel = ctx.channel
         doc = client.quiz.find_one({"_id": quizCode})
         questions = doc["questions"]
+        if doc["name"] != str(ctx.author.id):
+            await channel.send(embed=discord.Embed(title="You are not authorized to delete this quiz", colour=discord.Colour.red()))
+            return
         EmbedList = []
         for iteration, row in enumerate(questions):
             row = row.split("ȟ̵̢̨̤͕̔͊̓͒ͅ")
