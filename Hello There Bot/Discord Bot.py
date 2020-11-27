@@ -212,7 +212,6 @@ async def run(message, Id):
     except:
         await channel.send("Invalid Quiz Code Given or Invalid Quiz Set")
 
-
 @client.command()
 async def upload(ctx, filetype):
     validfiletypes = ["url", "csv"]
@@ -221,14 +220,14 @@ async def upload(ctx, filetype):
 
     # checks if parameter is good
     filetypechecker = False
-    for i in range(len(validfiletypes)):
+    for i in range(2):
         if validfiletypes[i] in filetype.lower():
             filetypechecker = True
             break
 
     if not filetypechecker:
         await ctx.send("Error! Unsupported file type!")
-        await ctx.send("The command's syntax goes as follows: !upload <filetype> <quiztype>.")
+        await ctx.send("The command's supported syntax goes as follows: !upload <**csv** or **url**>")
 
     if filetype == "csv":
 
@@ -237,7 +236,7 @@ async def upload(ctx, filetype):
         def check(message):
             return message.attachments[0].filename.endswith('.csv') and message.author == ctx.author
 
-        # checks if the 4 letter id is unique. If not, creates a new one.
+        # creates a 4 letter id and checks if it is unique. If not, reiterates. Returns unique id.
 
         def quizcodemaker(col):
             filename = ''.join(random.choice(string.ascii_uppercase) for i in range(4))
@@ -290,18 +289,21 @@ async def upload(ctx, filetype):
                     EmbedList.append(embed)
 
                 j = 0
-                await channel.send(embed = EmbedList[j])
-                msg = await channel.history().get(author__name=botname)
+                await channel.send(embed=EmbedList[j])
+                msg = await channel.history().get(author__name="Bobby Bot")
                 await msg.add_reaction("⬅️")
                 await msg.add_reaction("➡️")
                 await msg.add_reaction("✔️")
-                await channel.send("These are the questions you made. Please navigate through them using the arrow keys. Press the checkmark reaction once you're done checking")
+                await channel.send(
+                    embed=discord.Embed(title="These are the questions you made. Please navigate through them using the arrow keys. Press the checkmark reaction once you're done checking", colour=discord.Colour.dark_magenta()))
+                msg = await channel.history().get(author__name="Bobby Bot")
                 doneChecking = False
 
                 def checkdirection(reaction, user):
-                    return user == message.author and str(reaction.emoji) == '✔️' or str(reaction.emoji) == '⬅️' or str(reaction.emoji) == '➡️'
+                    return user == message.author and str(reaction.emoji) == '✔️' or str(reaction.emoji) == '⬅️' or str(
+                        reaction.emoji) == '➡️'
 
-                while(doneChecking == False):
+                while (doneChecking == False):
                     quizCheck = await client.wait_for("reaction_add", check=checkdirection)
                     if quizCheck[0].emoji == "⬅️":
                         j -= 1
@@ -315,53 +317,84 @@ async def upload(ctx, filetype):
                         await msg.edit(embed=EmbedList[j])
                     if quizCheck[0].emoji == "✔️":
                         doneChecking = True
+            await msg.edit(embed=discord.Embed(title="Is this the quiz set you wish to create?", colour=discord.Colour.purple()))
+            await msg.add_reaction("✔️")
+            await msg.add_reaction("❌")
 
-
-
-            await ctx.channel.send("--------------")
-            await ctx.channel.send("Is this the quiz set you wish to create? (Y/N)")
-
-            def checkanswer(message):
-                return (message.content.lower() == "y" or message.content.lower() == "n") and (message.channel == ctx.channel)
+            def checkanswer(reaction, user):
+                return user == message.author and (str(reaction.emoji) == '✔️' or str(reaction.emoji) == '❌')
 
             try:
-                userAnswer = await client.wait_for('message', timeout=60.0, check=checkanswer)
-                if userAnswer.content.lower() == "y":
-                    privacySetting = "private"
+                userAnswer = await client.wait_for('reaction_add', timeout=10.0, check=checkanswer)
+                if userAnswer[0].emoji == "✔️":
+                    privacySetting = "public"
                     quizname = str(file[0].filename)[:-4]
 
-                    await channel.send("Would you like to set this quizset as private or public? (Type \"Public\" or \"Private\")")
+                    await msg.clear_reaction("✔️")
+                    await msg.clear_reaction("❌")
+
+                    await msg.edit(embed=discord.Embed(title="This quiz set is currently set as public. Would you like it private?", colour=discord.Colour.green()))
+
+
+                    await msg.add_reaction("✔️")
+                    await msg.add_reaction("❌")
                     try:
 
-                        def checkprivacy(message):
-                            return message.channel == ctx.channel and message.author == ctx.author
-
-                        privacy = await client.wait_for("message", timeout=15.0, check=checkprivacy)
-                        if privacy.content.lower() == "private":
-                            await channel.send("Okay, your quiz set will be private.")
-                        elif privacy.content.lower() == "public":
-                            privacySetting = "public"
-                            await channel.send("Okay, your quiz set will be public.")
+                        privacy = await client.wait_for("reaction_add", timeout=10.0, check=checkanswer)
+                        if privacy[0].emoji == "✔️":
+                            privacySetting = "private"
                     except asyncio.TimeoutError:
-                        await ctx.channel.send("You timed out!")
+                        await msg.clear_reaction("✔️")
+                        await msg.clear_reaction("❌")
+                        await msg.edit(embed=discord.Embed(
+                            title="You timed out!",
+                            colour=discord.Colour.red()))
+                        return
 
-                    await channel.send("Your current quiz name is **\"" + quizname + "\"**. Would you like to change it? (Y/N)")
+                    await msg.clear_reaction("✔️")
+                    await msg.clear_reaction("❌")
+
+                    await msg.edit(embed=discord.Embed(
+                        title="Okay, your quiz set will be "+ privacySetting +". Your current quiz name is **\"" + quizname + "\"**. Would you like to change it? (Y/N)",
+                        colour=discord.Colour.red()))
+
+                    await msg.add_reaction("✔️")
+                    await msg.add_reaction("❌")
+
                     try:
-                        changeName = await client.wait_for('message', timeout=10.0, check=checkanswer)
-                        if changeName.content.lower() == "y":
+                        changeName = await client.wait_for('reaction_add', timeout=10.0, check=checkanswer)
+                        if changeName[0].emoji == "✔️":
                             nameDesired = False
                             while (nameDesired == False):
-                                await channel.send("What would you like to name your quiz?")
+
+                                await msg.clear_reaction("✔️")
+                                await msg.clear_reaction("❌")
+
+                                await msg.edit(embed=discord.Embed(
+                                    title="Please type what you would like to name your quiz.",
+                                    colour=discord.Colour.orange()))
+
 
                                 def checkName(message):
                                     return message.channel == ctx.channel and message.author == ctx.author
 
                                 try:
                                     desiredName = await client.wait_for("message", timeout=20.0, check=checkName)
-                                    await channel.send("Your quiz's name is currently **\"" + desiredName.content + "\"**. Is this correct? (Y/N)")
+
+                                    await msg.clear_reaction("✔️")
+                                    await msg.clear_reaction("❌")
+
+                                    await msg.edit(embed=discord.Embed(
+                                        title="Your quiz's name is currently **\"" + desiredName.content + "\"**. Is this correct?",
+                                        colour=discord.Colour.purple()))
+
+                                    await msg.add_reaction("✔️")
+                                    await msg.add_reaction("❌")
+
                                     try:
-                                        nameConfirmation = await client.wait_for("message", timeout=20.0, check=checkanswer)
-                                        if nameConfirmation.content.lower() == "y":
+                                        nameConfirmation = await client.wait_for("reaction_add", timeout=20.0,
+                                                                                 check=checkanswer)
+                                        if nameConfirmation[0].emoji == "✔️":
                                             nameDesired = True
                                             quizname = desiredName.content
 
@@ -382,17 +415,30 @@ async def upload(ctx, filetype):
                                                 x = client.quiz.update_one({"_id": unique_quizcode},
                                                                            {'$addToSet': {"questions": y}})
 
-                                            await ctx.channel.send("Success! Your quiz set ID is " + unique_quizcode)
-                                        elif nameConfirmation.content.lower() == "n":
+                                            await msg.clear_reaction("✔️")
+                                            await msg.clear_reaction("❌")
+
+                                            await msg.edit(embed=discord.Embed(
+                                                title="Success! Your quiz set ID is " + unique_quizcode,
+                                                colour=discord.Colour.green()))
+                                        elif nameConfirmation[0].emoji == "❌":
                                             continue
+
                                     except asyncio.TimeoutError:
-                                        await ctx.channel.send("You timed out!")
-                                        break
+                                        await msg.clear_reaction("✔️")
+                                        await msg.clear_reaction("❌")
+                                        await msg.edit(embed=discord.Embed(
+                                            title="You timed out!",
+                                            colour=discord.Colour.red()))
+                                        return
 
                                 except asyncio.TimeoutError:
-                                    await ctx.channel.send("You timed out!")
-                                    break
-                        elif changeName.content.lower() == "n":
+                                    await msg.edit(embed=discord.Embed(
+                                        title="You timed out!",
+                                        colour=discord.Colour.red()))
+                                    return
+
+                        elif changeName[0].emoji == "❌":
                             x = client.quiz.update_one({"_id": "Key"}, {'$addToSet': {"Codes": unique_quizcode}})
 
                             client.quiz.insert_one(
@@ -408,21 +454,41 @@ async def upload(ctx, filetype):
                                 y = 'ȟ̵̢̨̤͕̔͊̓͒ͅ'.join(row)
                                 x = client.quiz.update_one({"_id": unique_quizcode}, {'$addToSet': {"questions": y}})
 
-                            await ctx.channel.send("Success! Your quiz set ID is " + unique_quizcode)
+                            await msg.clear_reaction("✔️")
+                            await msg.clear_reaction("❌")
+
+                            await msg.edit(embed=discord.Embed(
+                                title="Success! Your quiz set ID is " + unique_quizcode,
+                                colour=discord.Colour.green()))
 
                     except asyncio.TimeoutError:
-                        await ctx.channel.send("You timed out!")
+                        await msg.clear_reaction("✔️")
+                        await msg.clear_reaction("❌")
+                        await msg.edit(embed=discord.Embed(
+                            title="You timed out!",
+                            colour=discord.Colour.red()))
+                        return
 
 
-                elif userAnswer.content.lower() == "n":
-                    await ctx.channel.send("Got it.")
+                elif userAnswer[0].emoji == "❌":
+                    await msg.clear_reaction("✔️")
+                    await msg.clear_reaction("❌")
+                    await msg.edit(embed=discord.Embed(
+                    title="Got it. Your quiz set won't be created.",
+                    colour=discord.Colour.red()))
+                    return
 
             except asyncio.TimeoutError:
-                await ctx.channel.send("You timed out!")
+                await msg.clear_reaction("✔️")
+                await msg.clear_reaction("❌")
+                await msg.edit(embed=discord.Embed(
+                    title="You timed out!",
+                    colour=discord.Colour.red()))
+                return
 
         except asyncio.TimeoutError:
             await ctx.channel.send("You timed out!")
-
+            return
 
 @client.command()
 async def myQuiz(ctx):
