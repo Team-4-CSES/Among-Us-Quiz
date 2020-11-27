@@ -53,6 +53,10 @@ async def run(message, Id):
     channel = message.channel
     try:
         doc = client.quiz.find_one({"_id": Id})
+        if doc["privacy"] == "private":
+            if doc["name"] != str(ctx.author.id):
+                await channel.send(embed=discord.Embed(title="You are not authorized to run this quiz.", colour=discord.Colour.red()))
+                return
         questions = doc["questions"]
         answer_dict = {'🇦': "A", '🇧': "B", '🇨': "C", '🇩': "D",
                        '🇪': "E", '🇫': "F", '🇬': "G", '🇭': "F",
