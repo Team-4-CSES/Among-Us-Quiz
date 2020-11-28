@@ -257,6 +257,14 @@ async def upload(ctx, filetype):
                 quiz = quiz.split("\n")
                 quiz = list(csv.reader(quiz))
                 EmbedList = []
+                # checks if you used the template
+                templatecheck = "You can look to Sheet 2 for an example quiz set"
+                if templatecheck not in quiz[0]:
+                    await channel.send(embed=discord.Embed(
+                        title="Invalid .csv format! Please follow the template and follow the instructions listed. You can find the quiz template at https://docs.google.com/spreadsheets/d/1H1Fg5Lw1hNMRFWkorHuAehRodlmHgKFM8unDjPZMnUg/edit#gid=196296521",
+                        colour=discord.Colour.red()))
+                    return
+
                 for row in quiz[6:]:
                     if set(list(row)) == {''}:
                         continue
@@ -276,24 +284,53 @@ async def upload(ctx, filetype):
                     # await channel.send(row[2])
                     ANSWERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
                     emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯']
+                    answerchoices = 0
                     for i, e in enumerate(emojis[:len(row[5:])]):
                         if row[5 + i] == "TRUE":
                             row[5 + i] = "True"
                         elif row[5 + i] == "FALSE":
                             row[5 + i] = "False"
+                        answerchoices += 1
+
+                        # checks if you have a correct answer choice
+                        validanswerchoice = False
+                        if row[3].islower():
+                            await channel.send(
+                                "Answer choices are case sensitive! Please change your correct answer choice for question " +
+                                row[0])
+                            return
+                        for a in range(answerchoices):
+                            if row[3] in ANSWERS[a]:
+                                validanswerchoice = True
+                                break
+                        if not validanswerchoice:
+                            await channel.send(
+                                "Question " + row[0] + " does not have a valid correct answer! (\"" + row[
+                                    3] + "\") Please check the template for correct formatting.")
+                            return
+
                         if ANSWERS[i] == row[3]:
                             embed.add_field(name=e, value=row[5 + i] + " (answer)")
                         else:
                             embed.add_field(name=e, value=row[5 + i])
+
+                        # checks if time is valid
+
+                        if not row[4].isdigit():
+                            await channel.send(
+                                "Question " + row[0] + " does not have a valid time! (\"" + row[
+                                    4] + "\")")
+                            return
+
                     embed.set_footer(text="You have " + row[4] + " seconds")
                     EmbedList.append(embed)
 
                 j = 0
                 await channel.send(embed=EmbedList[j])
-                msg = await channel.history().get(author__name=botname)
-                await msg.add_reaction("⬅️")
-                await msg.add_reaction("➡️")
-                await msg.add_reaction("✔️")
+                embed = await channel.history().get(author__name=botname)
+                await embed.add_reaction("⬅️")
+                await embed.add_reaction("➡️")
+                await embed.add_reaction("✔️")
                 await channel.send(
                     embed=discord.Embed(title="These are the questions you made. Please navigate through them using the arrow keys. Press the checkmark reaction once you're done checking", colour=discord.Colour.dark_magenta()))
                 msg = await channel.history().get(author__name=botname)
@@ -309,12 +346,12 @@ async def upload(ctx, filetype):
                         j -= 1
                         if j < 0:
                             j = len(EmbedList) - 1
-                        await msg.edit(embed=EmbedList[j])
+                        await embed.edit(embed=EmbedList[j])
                     if quizCheck[0].emoji == "➡️":
                         j += 1
                         if j > len(EmbedList) - 1:
                             j = 0
-                        await msg.edit(embed=EmbedList[j])
+                        await embed.edit(embed=EmbedList[j])
                     if quizCheck[0].emoji == "✔️":
                         doneChecking = True
             await msg.edit(embed=discord.Embed(title="Is this the quiz set you wish to create?", colour=discord.Colour.purple()))
@@ -474,7 +511,7 @@ async def upload(ctx, filetype):
                     await msg.clear_reaction("✔️")
                     await msg.clear_reaction("❌")
                     await msg.edit(embed=discord.Embed(
-                    title="Got it. Your quiz set won't be created.",
+                    title="Got it. This quiz set won't be created.",
                     colour=discord.Colour.red()))
                     return
 
