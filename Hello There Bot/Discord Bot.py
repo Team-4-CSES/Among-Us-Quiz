@@ -514,7 +514,8 @@ async def delete(ctx, quizCode):
         doc = client.quiz.find_one({"_id": quizCode})
         questions = doc["questions"]
         if doc["name"] != str(ctx.author.id):
-            await channel.send(embed=discord.Embed(title="You are not authorized to delete this quiz", colour=discord.Colour.red()))
+            await channel.send(
+                embed=discord.Embed(title="You are not authorized to delete this quiz", colour=discord.Colour.red()))
             return
         EmbedList = []
         for iteration, row in enumerate(questions):
@@ -548,11 +549,14 @@ async def delete(ctx, quizCode):
 
         j = 0
         await channel.send(embed=EmbedList[j])
-        msg = await channel.history().get(author__name=botname)
+        msg = await channel.history().get(author__name="Bobby Bot")
         await msg.add_reaction("⬅️")
         await msg.add_reaction("➡️")
         await msg.add_reaction("✔️")
-        await channel.send("Verify that this is the correct quiz. Navigate using the arrow keys and click the check mark when you're done checking.")
+        await channel.send(
+            embed=discord.Embed(title="Verify that this is the correct quiz. Navigate using the arrow keys and click the check mark when you're done checking.", colour=discord.Colour.light_gray()))
+        msg = await channel.history().get(author__name="Bobby Bot")
+
         doneChecking = False
 
         def checkdirection(reaction, user):
@@ -573,31 +577,47 @@ async def delete(ctx, quizCode):
                 await msg.edit(embed=EmbedList[j])
             if quizCheck[0].emoji == "✔️":
                 doneChecking = True
-        await ctx.channel.send("--------------")
-        await ctx.channel.send("Is this the quiz set you wish to delete? (Y/N)")
 
-        def checkanswer(message):
-            return (message.content.lower() == "y" or message.content.lower() == "n") and message.channel == ctx.channel
+        await msg.add_reaction("✔️")
+        await msg.add_reaction("❌")
+
+        await msg.edit(embed=discord.Embed(title="Is this the quiz set you wish to delete?", colour=discord.Colour.orange()))
+
+        def checkanswer(reaction, user):
+            return user == ctx.author and (str(reaction.emoji) == '✔️' or str(reaction.emoji) == '❌')
 
         try:
-            userAnswer = await client.wait_for('message', timeout=60.0, check=checkanswer)
-            print(userAnswer.content)
-            if userAnswer.content.lower() == "y":
-
+            userAnswer = await client.wait_for('reaction_add', timeout=10.0, check=checkanswer)
+            if userAnswer[0].emoji == "✔️":
                 client.quiz.delete_one({"_id": quizCode})
-                
                 client.quiz.update_one({"_id": "Key"}, {"$pull": {"Codes": quizCode}})
-                
-                await ctx.channel.send("Success! " + quizCode + " has been deleted")
+                await msg.clear_reaction("✔️")
+                await msg.clear_reaction("❌")
+                await msg.edit(embed=discord.Embed(
+                    title="Success! " + quizCode + " has been deleted",
+                    colour=discord.Colour.green()))
 
-            elif userAnswer.content.lower() == "n":
-                await ctx.channel.send("Got it.")
+            elif userAnswer[0].emoji == "❌":
+
+                await msg.clear_reaction("✔️")
+                await msg.clear_reaction("❌")
+                await msg.edit(embed=discord.Embed(
+                    title="Got it. Your quiz set won't be deleted.",
+                    colour=discord.Colour.green()))
+                return
 
         except asyncio.TimeoutError:
-            await ctx.channel.send("Timed out!")
+            await msg.clear_reaction("✔️")
+            await msg.clear_reaction("❌")
+            await msg.edit(embed=discord.Embed(
+                title="You timed out!",
+                colour=discord.Colour.red()))
+            return
 
     except:
-       await channel.send("Invalid code entered!")
+        await ctx.channel.send(
+            embed=discord.Embed(title="Invalid code entered!", colour=discord.Colour.red()))
+
 
 @client.command()
 async def help(ctx):
