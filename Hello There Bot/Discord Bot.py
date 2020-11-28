@@ -33,11 +33,11 @@ client.elimination = None
 client.players = {}
 botname = tokenIn.readline().rstrip()
 
+
 @client.event
 async def on_ready():
     print("Bot is Ready")
     await client.change_presence(activity=discord.Game("!help | <insert url here>"))
-
 
 @client.event
 async def on_reaction_add(rxn, user):
@@ -284,13 +284,11 @@ async def upload(ctx, filetype):
                     # await channel.send(row[2])
                     ANSWERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
                     emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯']
-                    answerchoices = 0
                     for i, e in enumerate(emojis[:len(row[5:])]):
                         if row[5 + i] == "TRUE":
                             row[5 + i] = "True"
                         elif row[5 + i] == "FALSE":
                             row[5 + i] = "False"
-                        answerchoices += 1
 
                         # checks if you have a correct answer choice
                         validanswerchoice = False
@@ -299,16 +297,13 @@ async def upload(ctx, filetype):
                                 "Answer choices are case sensitive! Please change your correct answer choice for question " +
                                 row[0])
                             return
-                        for a in range(answerchoices):
-                            if row[3] in ANSWERS[a]:
-                                validanswerchoice = True
-                                break
+                        if row[3] in ANSWERS[:len(row[5:])]:
+                            validanswerchoice = True
                         if not validanswerchoice:
                             await channel.send(
                                 "Question " + row[0] + " does not have a valid correct answer! (\"" + row[
                                     3] + "\") Please check the template for correct formatting.")
                             return
-
                         if ANSWERS[i] == row[3]:
                             embed.add_field(name=e, value=row[5 + i] + " (answer)")
                         else:
@@ -337,8 +332,8 @@ async def upload(ctx, filetype):
                 doneChecking = False
 
                 def checkdirection(reaction, user):
-                    return user == message.author and str(reaction.emoji) == '✔️' or str(reaction.emoji) == '⬅️' or str(
-                        reaction.emoji) == '➡️'
+                    return (user == message.author and str(reaction.emoji) == '✔️' or str(reaction.emoji) == '⬅️' or str(
+                        reaction.emoji) == '➡️') and reaction.message == embed
 
                 while (doneChecking == False):
                     quizCheck = await client.wait_for("reaction_add", check=checkdirection)
@@ -476,7 +471,8 @@ async def upload(ctx, filetype):
                                     return
 
                         elif changeName[0].emoji == "❌":
-                            x = client.quiz.update_one({"_id": "Key"}, {'$addToSet': {"Codes": unique_quizcode}})
+                            x = client.quiz.update_one({"_id": "Key"}, 
+                                                       {'$addToSet': {"Codes": unique_quizcode}})
 
                             client.quiz.insert_one(
                                 {"_id": unique_quizcode, "name": str(author.id), "quizName": quizname,
@@ -489,7 +485,8 @@ async def upload(ctx, filetype):
                                 if set(list(row)) == {''}:
                                     continue
                                 y = 'ȟ̵̢̨̤͕̔͊̓͒ͅ'.join(row)
-                                x = client.quiz.update_one({"_id": unique_quizcode}, {'$addToSet': {"questions": y}})
+                                x = client.quiz.update_one({"_id": unique_quizcode}, 
+                                                           {'$addToSet': {"questions": y}})
 
                             await msg.clear_reaction("✔️")
                             await msg.clear_reaction("❌")
@@ -505,7 +502,6 @@ async def upload(ctx, filetype):
                             title="You timed out!",
                             colour=discord.Colour.red()))
                         return
-
 
                 elif userAnswer[0].emoji == "❌":
                     await msg.clear_reaction("✔️")
@@ -584,21 +580,19 @@ async def delete(ctx, quizCode):
             embed.set_footer(text="You have " + row[4] + " seconds")
             EmbedList.append(embed)
 
-        j = 0
-        await channel.send(embed=EmbedList[j])
-        msg = await channel.history().get(author__name=botname)
-        await msg.add_reaction("⬅️")
-        await msg.add_reaction("➡️")
-        await msg.add_reaction("✔️")
-        await channel.send(
-            embed=discord.Embed(title="Verify that this is the correct quiz. Navigate using the arrow keys and click the check mark when you're done checking.", colour=discord.Colour.light_gray()))
-        msg = await channel.history().get(author__name=botname)
-
-        doneChecking = False
-
         def checkdirection(reaction, user):
             return user == ctx.author and str(reaction.emoji) == '✔️' or str(reaction.emoji) == '⬅️' or str(
                 reaction.emoji) == '➡️'
+        j = 0
+        await channel.send(embed=EmbedList[j])
+        msg = await channel.history().get(author__name=botname)
+        await channel.send(
+            embed=discord.Embed(title="Verify that this is the correct quiz. Navigate using the arrow keys and click the check mark when you're done checking.", colour=discord.Colour.light_gray()))
+        await msg.add_reaction("⬅️")
+        await msg.add_reaction("➡️")
+        await msg.add_reaction("✔️")
+
+        doneChecking = False
 
         while (doneChecking == False):
             quizCheck = await client.wait_for("reaction_add", check=checkdirection)
@@ -614,11 +608,10 @@ async def delete(ctx, quizCode):
                 await msg.edit(embed=EmbedList[j])
             if quizCheck[0].emoji == "✔️":
                 doneChecking = True
-
-        await msg.add_reaction("✔️")
-        await msg.add_reaction("❌")
-
+        msg = await channel.history().get(author__name=botname)
         await msg.edit(embed=discord.Embed(title="Is this the quiz set you wish to delete?", colour=discord.Colour.orange()))
+        await msg.add_reaction("✔️")
+        await msg.add_reaction("❌")        
 
         def checkanswer(reaction, user):
             return user == ctx.author and (str(reaction.emoji) == '✔️' or str(reaction.emoji) == '❌')
@@ -655,7 +648,6 @@ async def delete(ctx, quizCode):
         await ctx.channel.send(
             embed=discord.Embed(title="Invalid code entered!", colour=discord.Colour.red()))
 
-
 @client.command()
 async def help(ctx):
     channel = ctx.channel
@@ -670,8 +662,315 @@ async def help(ctx):
     embed.add_field(name="!run QUIZKEY", value=run, inline=False)
     embed.add_field(name="!myQuiz", value="Lets you view the keys and names of the quizzes you uploaded", inline=False)
     embed.add_field(name="!delete QUIZKEY", value="Asks you for confirmation then deletes this QUIZKEY from your bot.")
+    embed.add_field(name="!edit QUIZKEY", value="Allows you to edit quizzes that you have created.")
     embed.add_field(name="Bot Invitation Link", value="https://discord.com/oauth2/authorize?client_id=765746012282683393&scope=bot&permissions=355392")
     await channel.send(embed=embed)
+
+@client.command()
+async def edit(ctx, quizKey):
+    try:
+        channel = ctx.channel
+        doc = client.quiz.find_one({"_id": quizKey})
+        if doc["name"] != str(ctx.author.id):
+            await channel.send(embed=discord.Embed(title="You are not authorized to edit this quiz.", colour=discord.Colour.red()))
+            return
+        await channel.send(embed=discord.Embed(title="You are now editing " + quizKey + ": " + doc["quizName"], color=discord.Colour.orange()))
+        privacy = discord.Embed(title="This quiz's privacy is set to " + doc["privacy"], 
+                                description="Are you fine with this?", 
+                                color=discord.Colour.blue())
+        await channel.send(embed=privacy)
+        msg = await channel.history().get(author__name=botname)
+        await msg.add_reaction("✔️")
+        await msg.add_reaction("❌")
+        def setCheck(reaction, user):
+            return user == ctx.author and (str(reaction.emoji) == '✔️' or str(reaction.emoji) == '❌') and reaction.message == msg
+        try:
+            setting = await client.wait_for("reaction_add", check=setCheck)
+            private = ""
+            if doc["privacy"] == "private":
+                private = "public"
+            if doc["privacy"] == "public":
+                private = "private"
+            await msg.clear_reaction("✔️")
+            await msg.clear_reaction("❌")
+            if setting[0].emoji == "❌":
+                await msg.edit(embed=discord.Embed(description="Would you like to switch this quiz to " + private + "?",
+                                   color=discord.Colour.blue())) 
+                await msg.add_reaction("✔️")
+                await msg.add_reaction("❌")
+                try:
+                    setting = await client.wait_for("reaction_add", check=setCheck)
+                    await msg.clear_reaction("✔️")
+                    await msg.clear_reaction("❌")
+                    if setting[0].emoji == "✔️":
+                        x = client.quiz.update_one({"_id": quizKey}, 
+                                                   {"$set": {"privacy": private}})
+                        await msg.edit(embed=discord.Embed(description="Alright changed privacy to " + private + "!", 
+                                                               color=discord.Colour.green()))
+                    else:
+                        await msg.edit(embed=discord.Embed(description="Not changing privacy.", 
+                                                               color=discord.Colour.green()))
+                except:
+                    pass
+            else:
+                await msg.edit(embed=discord.Embed(description="Not changing privacy", color=discord.Colour.green()))
+        except:
+            pass
+        question = discord.Embed(title="The quiz's name is " + doc["quizName"],
+                                 description="Would you like to keep this?",
+                                 color=discord.Colour.blue())
+        await channel.send(embed=question)
+        msg = await channel.history().get(author__name=botname)
+        await msg.add_reaction("✔️")
+        await msg.add_reaction("❌")
+        def validQuestion(message):
+            if message.author != ctx.author:
+                return False
+            elif message.content == "":
+                return False
+            else:
+                return True    
+        try:
+            setting = await client.wait_for("reaction_add", check=setCheck)
+            await msg.clear_reaction("✔️")
+            await msg.clear_reaction("❌")
+            if setting[0].emoji == "❌":
+                await msg.edit(embed=discord.Embed(description="Write up what would you like to change the quiz name to.", 
+                                                       color=discord.Colour.blue()))
+                try:
+                    question = await client.wait_for("message", check=validQuestion)
+                    name = question.content
+                    await msg.edit(embed=discord.Embed(description="Would you like to set the quiz name to "+name+"?",
+                                                           color=discord.Colour.blue()))
+                    await msg.add_reaction("✔️")
+                    await msg.add_reaction("❌")
+                    try:
+                        rxn = await client.wait_for("reaction_add", check=setCheck)
+                        await msg.clear_reaction("✔️")
+                        await msg.clear_reaction("❌")
+                        if rxn[0].emoji == "✔️":
+                            x = client.quiz.update_one({"_id": quizKey}, 
+                                               {"$set": {"quizName": name}})
+                            await msg.edit(embed=discord.Embed(description="Alright changed name to " + name + "!", 
+                                               color=discord.Colour.green()))      
+                        else:
+                            await msg.edit(embed=discord.Embed(description="Keeping name as " + doc["quizName"] + ".", 
+                                               color=discord.Colour.green()))
+                    except:
+                        pass
+                except:
+                    pass
+            else:
+                await msg.edit(embed=discord.Embed(description="Keeping name as " + doc["quizName"] + ".", 
+                                               color=discord.Colour.green()))
+        except:
+            pass
+        questions = doc["questions"]
+        EmbedList = []
+        for iteration, row in enumerate(questions):
+            row = row.split("ȟ̵̢̨̤͕̔͊̓͒ͅ")
+            for i in range(0, len(row)):
+                if row[i] == '':
+                    row[i] = False
+            for i in range(0, row.count(False)):
+                row.remove(False)
+            embed = discord.Embed(
+                title="Question " + row[0],
+                description=row[1],
+
+                colour=discord.Colour.blue()
+            )
+            if row[2] != "None":
+                embed.set_image(url=row[2])
+            ANSWERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+            emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯']
+            for i, e in enumerate(emojis[:len(row[5:])]):
+                if row[5 + i] == "TRUE":
+                    row[5 + i] = "True"
+                elif row[5 + i] == "FALSE":
+                    row[5 + i] = "False"
+                if ANSWERS[i] == row[3]:
+                    embed.add_field(name=e, value=row[5 + i] + " (answer)")
+                else:
+                    embed.add_field(name=e, value=row[5 + i])
+            embed.set_footer(text="You have " + row[4] + " seconds")
+            EmbedList.append(embed)
+
+        def checkdirection(reaction, user):
+            return user == ctx.author and str(reaction.emoji) == '✔️' or str(reaction.emoji) == '⬅️' or str(
+                reaction.emoji) == '➡️'
+        j = 0
+        await channel.send(embed=EmbedList[j])
+        msg = await channel.history().get(author__name=botname)
+        await channel.send(
+            embed=discord.Embed(title="These are the questions this quiz has. Navigate using the arrow keys and click the check mark when you're done checking.", colour=discord.Colour.light_gray()))
+        await msg.add_reaction("⬅️")
+        await msg.add_reaction("➡️")
+        await msg.add_reaction("✔️")
+
+        doneChecking = False
+
+        while (doneChecking == False):
+            quizCheck = await client.wait_for("reaction_add", check=checkdirection)
+            if quizCheck[0].emoji == "⬅️":
+                j -= 1
+                if j < 0:
+                    j = len(EmbedList) - 1
+                await msg.edit(embed=EmbedList[j])
+            if quizCheck[0].emoji == "➡️":
+                j += 1
+                if j > len(EmbedList) - 1:
+                    j = 0
+                await msg.edit(embed=EmbedList[j])
+            if quizCheck[0].emoji == "✔️":
+                doneChecking = True
+        msg = await channel.history().get(author__name=botname)        
+        await msg.edit(embed=discord.Embed(title="Are you fine with these questions?", colour=discord.Colour.orange()))
+        await msg.add_reaction("✔️")
+        await msg.add_reaction("❌")
+        try:
+            setting = await client.wait_for("reaction_add", check=setCheck)
+            await msg.clear_reaction("✔️")
+            await msg.clear_reaction("❌")
+            if setting[0].emoji == "❌":
+                await msg.edit(embed=discord.Embed(title="Please upload the csv of this updated quiz", colour=discord.Colour.orange()))
+                def check(message):
+                    return message.attachments[0].filename.endswith('.csv') and message.author == ctx.author
+                try:
+                    message = await client.wait_for('message', check=check)
+                    file = message.attachments
+        
+                    if len(file) > 0 and file[0].filename.endswith('.csv'):
+                        quiz = requests.get(file[0].url).content.decode("utf-8")
+                        quiz = quiz.split("\n")
+                        quiz = list(csv.reader(quiz))
+                        EmbedList = []
+                        # checks if you used the template
+                        templatecheck = "You can look to Sheet 2 for an example quiz set"
+                        if templatecheck not in quiz[0]:
+                            await channel.send(embed=discord.Embed(
+                                title="Invalid .csv format! Please follow the template and follow the instructions listed. You can find the quiz template at https://docs.google.com/spreadsheets/d/1H1Fg5Lw1hNMRFWkorHuAehRodlmHgKFM8unDjPZMnUg/edit#gid=196296521",
+                                colour=discord.Colour.red()))
+                            return
+        
+                        for row in quiz[6:]:
+                            if set(list(row)) == {''}:
+                                continue
+                            for i in range(0, len(row)):
+                                if row[i] == "":
+                                    row[i] = False
+                            for i in range(0, row.count(False)):
+                                row.remove(False)
+                            embed = discord.Embed(
+                                title="Question " + row[0],
+                                description=row[1],
+        
+                                colour=discord.Colour.blue()
+                            )
+                            if row[2] != "None":
+                                embed.set_image(url=row[2])
+                            # await channel.send(row[2])
+                            ANSWERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+                            emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯']
+                            for i, e in enumerate(emojis[:len(row[5:])]):
+                                if row[5 + i] == "TRUE":
+                                    row[5 + i] = "True"
+                                elif row[5 + i] == "FALSE":
+                                    row[5 + i] = "False"
+        
+                                # checks if you have a correct answer choice
+                                validanswerchoice = False
+                                if row[3].islower():
+                                    await channel.send(
+                                        "Answer choices are case sensitive! Please change your correct answer choice for question " +
+                                        row[0])
+                                    return
+                                if row[3] in ANSWERS[:len(row[5:])]:
+                                    validanswerchoice = True
+                                if not validanswerchoice:
+                                    await channel.send(
+                                        "Question " + row[0] + " does not have a valid correct answer! (\"" + row[
+                                            3] + "\") Please check the template for correct formatting.")
+                                    return
+                                if ANSWERS[i] == row[3]:
+                                    embed.add_field(name=e, value=row[5 + i] + " (answer)")
+                                else:
+                                    embed.add_field(name=e, value=row[5 + i])
+        
+                                # checks if time is valid
+        
+                                if not row[4].isdigit():
+                                    await channel.send(
+                                        "Question " + row[0] + " does not have a valid time! (\"" + row[
+                                            4] + "\")")
+                                    return
+        
+                            embed.set_footer(text="You have " + row[4] + " seconds")
+                            EmbedList.append(embed)
+        
+                        j = 0
+                        await channel.send(embed=EmbedList[j])
+                        embed = await channel.history().get(author__name=botname)
+                        await embed.add_reaction("⬅️")
+                        await embed.add_reaction("➡️")
+                        await embed.add_reaction("✔️")
+                        await channel.send(
+                            embed=discord.Embed(title="These are the new questions you made. Please navigate through them using the arrow keys. Press the checkmark reaction once you're done checking", colour=discord.Colour.dark_magenta()))
+                        msg = await channel.history().get(author__name=botname)
+                        doneChecking = False
+        
+                        def checkdirection(reaction, user):
+                            return (user == message.author and str(reaction.emoji) == '✔️' or str(reaction.emoji) == '⬅️' or str(
+                                reaction.emoji) == '➡️') and reaction.message == embed
+        
+                        while (doneChecking == False):
+                            quizCheck = await client.wait_for("reaction_add", check=checkdirection)
+                            if quizCheck[0].emoji == "⬅️":
+                                j -= 1
+                                if j < 0:
+                                    j = len(EmbedList) - 1
+                                await embed.edit(embed=EmbedList[j])
+                            if quizCheck[0].emoji == "➡️":
+                                j += 1
+                                if j > len(EmbedList) - 1:
+                                    j = 0
+                                await embed.edit(embed=EmbedList[j])
+                            if quizCheck[0].emoji == "✔️":
+                                doneChecking = True
+                    await msg.edit(embed=discord.Embed(title="Is this the new quiz set you wish to create?", colour=discord.Colour.purple()))
+                    await msg.add_reaction("✔️")
+                    await msg.add_reaction("❌")
+                    try:
+                        setting = await client.wait_for("reaction_add", check=setCheck)
+                        await msg.clear_reaction("✔️")
+                        await msg.clear_reaction("❌")
+                        if setting[0].emoji == "❌":
+                            await msg.edit(embed=discord.Embed(title="Keeping the questions same", colour=discord.Colour.green()))
+                        else:
+                            quiz = requests.get(file[0].url).content.decode("utf-8")
+                            quiz = quiz.split("\n")
+                            quiz = list(csv.reader(quiz))
+                            x = client.quiz.update_one({"_id": quizKey},
+                                                           {'$set': {"questions": []}})
+                            for row in quiz[6:]:
+                                if set(list(row)) == {''}:
+                                    continue
+                                y = 'ȟ̵̢̨̤͕̔͊̓͒ͅ'.join(row)
+                                x = client.quiz.update_one({"_id": quizKey},
+                                                           {'$addToSet': {"questions": y}})
+                            await msg.edit(embed=discord.Embed(title="Questions have been successfully updated", colour=discord.Colour.green()))
+                    except:
+                        print("Last step come on")
+                except:
+                    print("Literally re-doing the upload function did not work go figure.")
+            else:
+                await msg.edit(embed=discord.Embed(title="Keeping the questions same", colour=discord.Colour.green()))
+        except:
+            print("Literally re-doing the upload function did not work go figure.")
+        await channel.send(embed=discord.Embed(title="Finished editing", color=discord.Colour.green()))
+    except:
+        await ctx.channel.send(
+            embed=discord.Embed(title="Invalid code entered!", colour=discord.Colour.red()))    
 
 
 keep_alive.keep_alive()
