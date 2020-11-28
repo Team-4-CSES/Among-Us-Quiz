@@ -49,12 +49,12 @@ async def on_reaction_add(rxn, user):
         client.players[user.name] = 0
 
 @client.command()
-async def run(ctx, message, Id):
+async def run(message, Id):
     channel = message.channel
     try:
         doc = client.quiz.find_one({"_id": Id})
         if doc["privacy"] == "private":
-            if doc["name"] != str(ctx.author.id):
+            if doc["name"] != str(message.author.id):
                 await channel.send(embed=discord.Embed(title="You are not authorized to run this quiz.", colour=discord.Colour.red()))
                 return
         questions = doc["questions"]
