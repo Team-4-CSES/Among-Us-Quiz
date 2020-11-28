@@ -290,13 +290,13 @@ async def upload(ctx, filetype):
 
                 j = 0
                 await channel.send(embed=EmbedList[j])
-                msg = await channel.history().get(author__name="Bobby Bot")
+                msg = await channel.history().get(author__name=botname)
                 await msg.add_reaction("⬅️")
                 await msg.add_reaction("➡️")
                 await msg.add_reaction("✔️")
                 await channel.send(
                     embed=discord.Embed(title="These are the questions you made. Please navigate through them using the arrow keys. Press the checkmark reaction once you're done checking", colour=discord.Colour.dark_magenta()))
-                msg = await channel.history().get(author__name="Bobby Bot")
+                msg = await channel.history().get(author__name=botname)
                 doneChecking = False
 
                 def checkdirection(reaction, user):
@@ -549,13 +549,13 @@ async def delete(ctx, quizCode):
 
         j = 0
         await channel.send(embed=EmbedList[j])
-        msg = await channel.history().get(author__name="Bobby Bot")
+        msg = await channel.history().get(author__name=botname)
         await msg.add_reaction("⬅️")
         await msg.add_reaction("➡️")
         await msg.add_reaction("✔️")
         await channel.send(
             embed=discord.Embed(title="Verify that this is the correct quiz. Navigate using the arrow keys and click the check mark when you're done checking.", colour=discord.Colour.light_gray()))
-        msg = await channel.history().get(author__name="Bobby Bot")
+        msg = await channel.history().get(author__name=botname)
 
         doneChecking = False
 
