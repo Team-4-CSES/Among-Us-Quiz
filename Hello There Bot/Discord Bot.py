@@ -49,7 +49,7 @@ async def on_reaction_add(rxn, user):
         client.players[user.name] = 0
 
 @client.command()
-async def run(message, Id):
+async def run(ctx, message, Id):
     channel = message.channel
     try:
         doc = client.quiz.find_one({"_id": Id})
