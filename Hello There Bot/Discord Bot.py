@@ -233,6 +233,7 @@ async def upload(ctx, filetype):
         await ctx.send("Error! Unsupported file type!")
         await ctx.send("The command's supported syntax goes as follows: !upload <**csv** or **url**>")
 
+    quiz = ""
     if filetype == "csv":
 
         await ctx.send("Please upload your .CSV file.")
@@ -255,15 +256,15 @@ async def upload(ctx, filetype):
             message = await client.wait_for('message', timeout=15.0, check=check)
             file = message.attachments
             unique_quizcode = quizcodemaker(client.quiz)
-
+            
             if len(file) > 0 and file[0].filename.endswith('.csv'):
                 quiz = requests.get(file[0].url).content.decode("utf-8")
                 quiz = quiz.split("\n")
                 quiz = list(csv.reader(quiz))
                 EmbedList = []
                 # checks if you used the template
-                templatecheck = "You can look to Sheet 2 for an example quiz set"
-                if templatecheck not in quiz[0]:
+                templatecheck = "Question No.,Question,Image URL,Answer,Time,A,B,C,D,E,F,G,H,I,J"
+                if templatecheck not in ",".join(quiz[5]):
                     await channel.send(embed=discord.Embed(
                         title="Invalid .csv format! Please follow the template and follow the instructions listed. You can find the quiz template at https://docs.google.com/spreadsheets/d/1H1Fg5Lw1hNMRFWkorHuAehRodlmHgKFM8unDjPZMnUg/edit#gid=196296521",
                         colour=discord.Colour.red()))
@@ -371,7 +372,8 @@ async def upload(ctx, filetype):
                 userAnswer = await client.wait_for('reaction_add', timeout=10.0, check=checkanswer)
                 if userAnswer[0].emoji == "✔️":
                     privacySetting = "public"
-                    quizname = str(file[0].filename)[:-4]
+                    print(quiz[2])
+                    quizname = quiz[2][0]
 
                     await msg.clear_reaction("✔️")
                     await msg.clear_reaction("❌")
@@ -865,8 +867,8 @@ async def edit(ctx, quizKey):
                         quiz = list(csv.reader(quiz))
                         EmbedList = []
                         # checks if you used the template
-                        templatecheck = "You can look to Sheet 2 for an example quiz set"
-                        if templatecheck not in quiz[0]:
+                        templatecheck = "Question No.,Question,Image URL,Answer,Time,A,B,C,D,E,F,G,H,I,J"
+                        if templatecheck not in ",".join(quiz[5]):
                             await channel.send(embed=discord.Embed(
                                 title="Invalid .csv format! Please follow the template and follow the instructions listed. You can find the quiz template at https://docs.google.com/spreadsheets/d/1H1Fg5Lw1hNMRFWkorHuAehRodlmHgKFM8unDjPZMnUg/edit#gid=196296521",
                                 colour=discord.Colour.red()))
