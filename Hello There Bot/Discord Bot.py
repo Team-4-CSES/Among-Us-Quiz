@@ -218,21 +218,8 @@ async def run(message, Id):
 
 @client.command()
 async def upload(ctx, filetype):
-    validfiletypes = ["url", "csv"]
     author = ctx.author
     channel = ctx.channel
-
-    # checks if parameter is good
-    filetypechecker = False
-    for i in range(2):
-        if validfiletypes[i] in filetype.lower():
-            filetypechecker = True
-            break
-
-    if not filetypechecker:
-        await ctx.send("Error! Unsupported file type!")
-        await ctx.send("The command's supported syntax goes as follows: !upload <**csv** or **url**>")
-
     quiz = ""
     if filetype == "csv":
 
@@ -253,15 +240,16 @@ async def upload(ctx, filetype):
             return filename
 
         try:
-            message = await client.wait_for('message', timeout=15.0, check=check)
+            message = await client.wait_for('message', timeout=25.0, check=check)
             file = message.attachments
             unique_quizcode = quizcodemaker(client.quiz)
-            
+
             if len(file) > 0 and file[0].filename.endswith('.csv'):
                 quiz = requests.get(file[0].url).content.decode("utf-8")
                 quiz = quiz.split("\n")
                 quiz = list(csv.reader(quiz))
                 EmbedList = []
+
                 # checks if you used the template
                 templatecheck = "Question No.,Question,Image URL,Answer,Time,A,B,C,D,E,F,G,H,I,J"
                 if templatecheck not in ",".join(quiz[5]):
@@ -285,13 +273,25 @@ async def upload(ctx, filetype):
                         colour=discord.Colour.blue()
                     )
                     if row[2] != "None":
-                        #checks if the image link works
-                        r = urllib.request.urlopen(row[2])
-                        if r.headers.get_content_maintype() != "image":
-                            await channel.send(embed=discord.Embed(
-                                title="Invalid image URL for question " + row[0] + "! Please double check that you inputted a proper image URL (Right-click, \"copy image address\", paste).",
-                                colour=discord.Colour.red()))
-                            return
+                        # checks if the image link works
+                        if "cdn" in row[2]:
+                            types = [".jpg", ".jpeg", ".png", ".gif"]
+                            if not any(x in row[2] for x in types):
+                                await channel.send(embed=discord.Embed(
+                                    title="Invalid image URL for question " + row[
+                                        0] + "! Please double check that you inputted a proper image URL (Right-click, \"copy image address\", paste).",
+                                    colour=discord.Colour.red()))
+                                return
+
+                        else:
+                            r = urllib.request.urlopen(row[2])
+                            if r.headers.get_content_maintype() != "image":
+                                await channel.send(embed=discord.Embed(
+                                    title="Invalid image URL for question " + row[
+                                        0] + "! Please double check that you inputted a proper image URL (Right-click, \"copy image address\", paste).",
+                                    colour=discord.Colour.red()))
+                                return
+
                         embed.set_image(url=row[2])
                     # await channel.send(row[2])
                     ANSWERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
@@ -339,12 +339,15 @@ async def upload(ctx, filetype):
                 await embed.add_reaction("➡️")
                 await embed.add_reaction("✔️")
                 await channel.send(
-                    embed=discord.Embed(title="These are the questions you made. Please navigate through them using the arrow keys. Press the checkmark reaction once you're done checking", colour=discord.Colour.dark_magenta()))
+                    embed=discord.Embed(
+                        title="These are the questions you made. Please navigate through them using the arrow keys. Press the checkmark reaction once you're done checking",
+                        colour=discord.Colour.dark_magenta()))
                 msg = await channel.history().get(author__name=botname)
                 doneChecking = False
 
                 def checkdirection(reaction, user):
-                    return (user == message.author and str(reaction.emoji) == '✔️' or str(reaction.emoji) == '⬅️' or str(
+                    return (user == message.author and str(reaction.emoji) == '✔️' or str(
+                        reaction.emoji) == '⬅️' or str(
                         reaction.emoji) == '➡️') and reaction.message == embed
 
                 while not doneChecking:
@@ -361,7 +364,9 @@ async def upload(ctx, filetype):
                         await embed.edit(embed=EmbedList[j])
                     if quizCheck[0].emoji == "✔️":
                         doneChecking = True
-            await msg.edit(embed=discord.Embed(title="Is this the quiz set you wish to create?", colour=discord.Colour.purple()))
+                        await embed.delete()
+            await msg.edit(
+                embed=discord.Embed(title="Is this the quiz set you wish to create?", colour=discord.Colour.purple()))
             await msg.add_reaction("✔️")
             await msg.add_reaction("❌")
 
@@ -369,22 +374,23 @@ async def upload(ctx, filetype):
                 return user == message.author and (str(reaction.emoji) == '✔️' or str(reaction.emoji) == '❌')
 
             try:
-                userAnswer = await client.wait_for('reaction_add', timeout=10.0, check=checkanswer)
+                userAnswer = await client.wait_for('reaction_add', timeout=20.0, check=checkanswer)
                 if userAnswer[0].emoji == "✔️":
                     privacySetting = "public"
-                    print(quiz[2])
                     quizname = quiz[2][0]
 
                     await msg.clear_reaction("✔️")
                     await msg.clear_reaction("❌")
 
-                    await msg.edit(embed=discord.Embed(title="This quiz set is currently set as public. Would you like it private?", colour=discord.Colour.green()))
+                    await msg.edit(embed=discord.Embed(
+                        title="This quiz set is currently set as public. Would you like it private?",
+                        colour=discord.Colour.green()))
 
                     await msg.add_reaction("✔️")
                     await msg.add_reaction("❌")
                     try:
 
-                        privacy = await client.wait_for("reaction_add", timeout=10.0, check=checkanswer)
+                        privacy = await client.wait_for("reaction_add", timeout=20.0, check=checkanswer)
                         if privacy[0].emoji == "✔️":
                             privacySetting = "private"
                     except asyncio.TimeoutError:
@@ -399,14 +405,33 @@ async def upload(ctx, filetype):
                     await msg.clear_reaction("❌")
 
                     await msg.edit(embed=discord.Embed(
-                        title="Okay, your quiz set will be " + privacySetting + ". Your current quiz name is **\"" + quizname + "\"**. Would you like to change it? (Y/N)",
+                        title="Okay, your quiz set will be " + privacySetting + ". Your current quiz name is **\"" + quizname + "\"**. Would you like to change it?",
                         colour=discord.Colour.red()))
 
                     await msg.add_reaction("✔️")
                     await msg.add_reaction("❌")
 
+                    #creates quiz and uploads it into the database
+                    def createquiz():
+                        x = client.quiz.update_one({"_id": "Key"},
+                                                   {'$addToSet': {"Codes": unique_quizcode}})
+
+                        client.quiz.insert_one(
+                            {"_id": unique_quizcode, "name": str(author.id), "quizName": quizname,
+                             "questions": [], "privacy": privacySetting})
+
+                        quiz = requests.get(file[0].url).content.decode("utf-8")
+                        quiz = quiz.split("\n")
+                        quiz = list(csv.reader(quiz))
+                        for row in quiz[6:]:
+                            if set(list(row)) == {''}:
+                                continue
+                            y = 'ȟ̵̢̨̤͕̔͊̓͒ͅ'.join(row)
+                            x = client.quiz.update_one({"_id": unique_quizcode},
+                                                       {'$addToSet': {"questions": y}})
+
                     try:
-                        changeName = await client.wait_for('reaction_add', timeout=10.0, check=checkanswer)
+                        changeName = await client.wait_for('reaction_add', timeout=20.0, check=checkanswer)
                         if changeName[0].emoji == "✔️":
                             nameDesired = False
                             while not nameDesired:
@@ -441,29 +466,22 @@ async def upload(ctx, filetype):
                                             nameDesired = True
                                             quizname = desiredName.content
 
-                                            x = client.quiz.update_one({"_id": "Key"},
-                                                                       {'$addToSet': {"Codes": unique_quizcode}})
-
-                                            client.quiz.insert_one(
-                                                {"_id": unique_quizcode, "name": str(author.id), "quizName": quizname,
-                                                 "questions": [], "privacy": privacySetting})
-
-                                            quiz = requests.get(file[0].url).content.decode("utf-8")
-                                            quiz = quiz.split("\n")
-                                            quiz = list(csv.reader(quiz))
-                                            for row in quiz[6:]:
-                                                if set(list(row)) == {''}:
-                                                    continue
-                                                y = 'ȟ̵̢̨̤͕̔͊̓͒ͅ'.join(row)
-                                                x = client.quiz.update_one({"_id": unique_quizcode},
-                                                                           {'$addToSet': {"questions": y}})
+                                            createquiz()
 
                                             await msg.clear_reaction("✔️")
                                             await msg.clear_reaction("❌")
-
-                                            await msg.edit(embed=discord.Embed(
-                                                title="Success! Your quiz set ID is " + unique_quizcode,
-                                                colour=discord.Colour.green()))
+                                            
+                                            if privacySetting == "public":
+                                                await msg.edit(embed=discord.Embed(
+                                                    title="Success! Your quiz set ID is " + unique_quizcode,
+                                                    colour=discord.Colour.green()))
+                                            elif privacySetting == "private":
+                                                await author.send(embed=discord.Embed(
+                                                    title="Success! Your private quiz set ID is " + unique_quizcode,
+                                                    colour=discord.Colour.green()))
+                                                await author.send(embed=discord.Embed(
+                                                    title="You can also message this bot directly to run quizzes!",
+                                                    colour=discord.Colour.green()))
                                         elif nameConfirmation[0].emoji == "❌":
                                             continue
 
@@ -482,29 +500,23 @@ async def upload(ctx, filetype):
                                     return
 
                         elif changeName[0].emoji == "❌":
-                            x = client.quiz.update_one({"_id": "Key"}, 
-                                                       {'$addToSet': {"Codes": unique_quizcode}})
 
-                            client.quiz.insert_one(
-                                {"_id": unique_quizcode, "name": str(author.id), "quizName": quizname,
-                                 "questions": [], "privacy": privacySetting})
-
-                            quiz = requests.get(file[0].url).content.decode("utf-8")
-                            quiz = quiz.split("\n")
-                            quiz = list(csv.reader(quiz))
-                            for row in quiz[6:]:
-                                if set(list(row)) == {''}:
-                                    continue
-                                y = 'ȟ̵̢̨̤͕̔͊̓͒ͅ'.join(row)
-                                x = client.quiz.update_one({"_id": unique_quizcode}, 
-                                                           {'$addToSet': {"questions": y}})
+                            createquiz()
 
                             await msg.clear_reaction("✔️")
                             await msg.clear_reaction("❌")
 
-                            await msg.edit(embed=discord.Embed(
-                                title="Success! Your quiz set ID is " + unique_quizcode,
-                                colour=discord.Colour.green()))
+                            if privacySetting == "public":
+                                await msg.edit(embed=discord.Embed(
+                                        title="Success! Your quiz set ID is " + unique_quizcode,
+                                        colour=discord.Colour.green()))
+                            elif privacySetting == "private":
+                                await author.send(embed=discord.Embed(
+                                                    title="Success! Your private quiz set ID is " + unique_quizcode,
+                                                    colour=discord.Colour.green()))
+                                await author.send(embed=discord.Embed(
+                                                    title="You can also message this bot directly to run quizzes!",
+                                                    colour=discord.Colour.green()))
 
                     except asyncio.TimeoutError:
                         await msg.clear_reaction("✔️")
@@ -534,6 +546,10 @@ async def upload(ctx, filetype):
             await ctx.channel.send("You timed out!")
             return
 
+        except:
+            await ctx.channel.send("There was an issue reading your .csv file. Please retry the command.")
+
+
 
 @client.command()
 async def myQuiz(ctx):
@@ -550,7 +566,7 @@ async def myQuiz(ctx):
         code = doc["_id"]
         name = doc["quizName"]
         embed.add_field(name=code, value=name, inline=False)
-    await channel.send(embed=embed)
+    await author.send(embed=embed)
 
 
 @client.command()
@@ -631,7 +647,7 @@ async def delete(ctx, quizcode):
             return user == ctx.author and (str(reaction.emoji) == '✔️' or str(reaction.emoji) == '❌')
 
         try:
-            userAnswer = await client.wait_for('reaction_add', timeout=10.0, check=checkanswer)
+            userAnswer = await client.wait_for('reaction_add', timeout=20.0, check=checkanswer)
             if userAnswer[0].emoji == "✔️":
                 client.quiz.delete_one({"_id": quizcode})
                 client.quiz.update_one({"_id": "Key"}, {"$pull": {"Codes": quizcode}})
@@ -675,7 +691,7 @@ async def help(ctx):
     embed.add_field(name="!upload csv", value=uploadCSV, inline=False)
     run = "This command searches our database for a quiz of key QUIZKEY.  If QUIZKEY is valid, it will start the quiz."
     embed.add_field(name="!run QUIZKEY", value=run, inline=False)
-    embed.add_field(name="!myQuiz", value="Lets you view the keys and names of the quizzes you uploaded", inline=False)
+    embed.add_field(name="!myQuiz", value="Direct messages you the keys and names of the quizzes you uploaded", inline=False)
     embed.add_field(name="!delete QUIZKEY", value="Asks you for confirmation then deletes this QUIZKEY from your bot.")
     embed.add_field(name="!edit QUIZKEY", value="Allows you to edit quizzes that you have created.")
     embed.add_field(name="Bot Invitation Link", value="https://discord.com/oauth2/authorize?client_id=765746012282683393&scope=bot&permissions=355392")
@@ -962,7 +978,7 @@ async def edit(ctx, quizKey):
                             if quizCheck[0].emoji == "✔️":
                                 doneChecking = True
                     await embed.delete()
-                    await msg.edit(embed=discord.Embed(title="Is this the new quiz set you wish to create?", colour=discord.Colour.purple()))
+                    await msg.edit(embed=discord.Embed(title="Is this the updated quiz set you wish to create?", colour=discord.Colour.purple()))
                     await msg.add_reaction("✔️")
                     await msg.add_reaction("❌")
                     try:
