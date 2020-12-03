@@ -621,7 +621,6 @@ async def delete(ctx, quizcode):
                 await msg.edit(embed=EmbedList[j])
             if quizCheck[0].emoji == "✔️":
                 doneChecking = True
-        await msg.delete()        
         msg = await channel.history().get(author__name=botname)
         await msg.edit(embed=discord.Embed(title="Is this the quiz set you wish to delete?", colour=discord.Colour.orange()))
         await msg.add_reaction("✔️")
@@ -690,7 +689,7 @@ async def edit(ctx, quizKey):
         if doc["name"] != str(ctx.author.id):
             await channel.send(embed=discord.Embed(title="You are not authorized to edit this quiz.", colour=discord.Colour.red()))
             return
-        await channel.send(embed=discord.Embed(title="You are now editing " + quizKey + ": " + doc["quizName"], color=discord.Colour.green()))
+        await channel.send(embed=discord.Embed(title="You are now editing " + quizKey + ": " + doc["quizName"], color=discord.Colour.orange()))
         privacy = discord.Embed(title="This quiz's privacy is set to " + doc["privacy"], 
                                 description="Are you fine with this?", 
                                 color=discord.Colour.blue())
@@ -723,7 +722,7 @@ async def edit(ctx, quizKey):
                     if setting[0].emoji == "✔️":
                         x = client.quiz.update_one({"_id": quizKey}, 
                                                    {"$set": {"privacy": private}})
-                        await msg.edit(embed=discord.Embed(description="Alright! Changed privacy to " + private + "!",
+                        await msg.edit(embed=discord.Embed(description="Alright changed privacy to " + private + "!",
                                                            color=discord.Colour.green()))
                     else:
                         await msg.edit(embed=discord.Embed(description="Not changing privacy.",
@@ -823,7 +822,7 @@ async def edit(ctx, quizKey):
         await channel.send(embed=EmbedList[j])
         msg = await channel.history().get(author__name=botname)
         await channel.send(
-            embed=discord.Embed(description="These are the questions this quiz has. Navigate using the arrow keys and click the check mark when you're done checking.", colour=discord.Colour.light_gray()))
+            embed=discord.Embed(title="These are the questions this quiz has. Navigate using the arrow keys and click the check mark when you're done checking.", colour=discord.Colour.light_gray()))
         await msg.add_reaction("⬅️")
         await msg.add_reaction("➡️")
         await msg.add_reaction("✔️")
@@ -844,9 +843,8 @@ async def edit(ctx, quizKey):
                 await msg.edit(embed=EmbedList[j])
             if quizCheck[0].emoji == "✔️":
                 doneChecking = True
-        await msg.delete()        
         msg = await channel.history().get(author__name=botname)        
-        await msg.edit(embed=discord.Embed(description="Are you fine with these questions?", colour=discord.Colour.orange()))
+        await msg.edit(embed=discord.Embed(title="Are you fine with these questions?", colour=discord.Colour.orange()))
         await msg.add_reaction("✔️")
         await msg.add_reaction("❌")
         try:
@@ -854,14 +852,13 @@ async def edit(ctx, quizKey):
             await msg.clear_reaction("✔️")
             await msg.clear_reaction("❌")
             if setting[0].emoji == "❌":
-                await msg.edit(embed=discord.Embed(description="Please upload the csv of this updated quiz", colour=discord.Colour.orange()))
+                await msg.edit(embed=discord.Embed(title="Please upload the csv of this updated quiz", colour=discord.Colour.orange()))
 
                 def check(message):
                     return message.attachments[0].filename.endswith('.csv') and message.author == ctx.author
 
                 try:
                     message = await client.wait_for('message', check=check)
-                    await msg.delete()
                     file = message.attachments
         
                     if len(file) > 0 and file[0].filename.endswith('.csv'):
@@ -961,7 +958,6 @@ async def edit(ctx, quizKey):
                                 await embed.edit(embed=EmbedList[j])
                             if quizCheck[0].emoji == "✔️":
                                 doneChecking = True
-                    await embed.delete()
                     await msg.edit(embed=discord.Embed(title="Is this the new quiz set you wish to create?", colour=discord.Colour.purple()))
                     await msg.add_reaction("✔️")
                     await msg.add_reaction("❌")
@@ -970,7 +966,7 @@ async def edit(ctx, quizKey):
                         await msg.clear_reaction("✔️")
                         await msg.clear_reaction("❌")
                         if setting[0].emoji == "❌":
-                            await msg.edit(embed=discord.Embed(description="Keeping the questions same", colour=discord.Colour.green()))
+                            await msg.edit(embed=discord.Embed(title="Keeping the questions same", colour=discord.Colour.green()))
                         else:
                             quiz = requests.get(file[0].url).content.decode("utf-8")
                             quiz = quiz.split("\n")
@@ -983,13 +979,13 @@ async def edit(ctx, quizKey):
                                 y = 'ȟ̵̢̨̤͕̔͊̓͒ͅ'.join(row)
                                 x = client.quiz.update_one({"_id": quizKey},
                                                            {'$addToSet': {"questions": y}})
-                            await msg.edit(embed=discord.Embed(description="Questions have been successfully updated", colour=discord.Colour.green()))
+                            await msg.edit(embed=discord.Embed(title="Questions have been successfully updated", colour=discord.Colour.green()))
                     except:
                         print("Last step come on")
                 except:
                     print("Literally re-doing the upload function did not work go figure.")
             else:
-                await msg.edit(embed=discord.Embed(description="Keeping the questions same", colour=discord.Colour.green()))
+                await msg.edit(embed=discord.Embed(title="Keeping the questions same", colour=discord.Colour.green()))
         except:
             print("Literally re-doing the upload function did not work go figure.")
         await channel.send(embed=discord.Embed(title="Finished editing", color=discord.Colour.green()))
