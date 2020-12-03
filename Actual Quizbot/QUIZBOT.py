@@ -277,13 +277,24 @@ async def upload(ctx, filetype):
                     )
                     if row[2] != "None":
                         # checks if the image link works
-                        r = urllib.request.urlopen(row[2])
-                        if r.headers.get_content_maintype() != "image":
-                            await channel.send(embed=discord.Embed(
-                                title="Invalid image URL for question " + row[
-                                    0] + "! Please double check that you inputted a proper image URL (Right-click, \"copy image address\", paste).",
-                                colour=discord.Colour.red()))
-                            return
+                        if "cdn" in row[2]:
+                            types = [".jpg", ".jpeg", ".png", ".gif"]
+                            if not any(x in row[2] for x in types):
+                                await channel.send(embed=discord.Embed(
+                                    title="Invalid image URL for question " + row[
+                                        0] + "! Please double check that you inputted a proper image URL (Right-click, \"copy image address\", paste).",
+                                    colour=discord.Colour.red()))
+                                return
+
+                        else:
+                            r = urllib.request.urlopen(row[2])
+                            if r.headers.get_content_maintype() != "image":
+                                await channel.send(embed=discord.Embed(
+                                    title="Invalid image URL for question " + row[
+                                        0] + "! Please double check that you inputted a proper image URL (Right-click, \"copy image address\", paste).",
+                                    colour=discord.Colour.red()))
+                                return
+
                         embed.set_image(url=row[2])
                     # await channel.send(row[2])
                     ANSWERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
@@ -403,7 +414,7 @@ async def upload(ctx, filetype):
                     await msg.add_reaction("✔️")
                     await msg.add_reaction("❌")
 
-                    #creates quiz and uploads it into the database
+                    # creates quiz and uploads it into the database
                     def createquiz():
                         x = client.quiz.update_one({"_id": "Key"},
                                                    {'$addToSet': {"Codes": unique_quizcode}})
@@ -698,7 +709,7 @@ async def edit(ctx, quizKey):
 
         def setCheck(reaction, user):
             return user == ctx.author and (
-                        str(reaction.emoji) == '✔️' or str(reaction.emoji) == '❌') and reaction.message == msg
+                    str(reaction.emoji) == '✔️' or str(reaction.emoji) == '❌') and reaction.message == msg
 
         try:
             setting = await client.wait_for("reaction_add", check=setCheck)
