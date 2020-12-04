@@ -32,6 +32,7 @@ mongo = MongoClient(tokenIn.readline().rstrip())
 db = mongo["quizInfo"]
 client.quiz = mongo.quizInfo.quizinfos
 client.elimination = None
+client.shuffle = None
 client.players = {}
 botname = tokenIn.readline().rstrip()
 
@@ -48,7 +49,7 @@ async def on_reaction_add(rxn, user):
     channel = message.channel
 
     LastMsg = await channel.history().get(author__name=botname)
-    if rxn.emoji == "💩" and user.name != botname and message.author.name == botname and LastMsg == message:
+    if rxn.emoji == "✔️" and user.name != botname and message.author.name == botname and LastMsg == message:
         client.players[user.name] = 0
 
 
@@ -70,7 +71,7 @@ async def run(message, Id):
             embed=discord.Embed(title="You have 10 seconds to react to the reaction below and join the game.",
                                 color=discord.Colour.blue()))
         InvMsg = await channel.history().get(author__name=botname)
-        await InvMsg.add_reaction("💩")
+        await InvMsg.add_reaction("✔️")
         time.sleep(10)
         InvMsg = await channel.history().get(author__name=botname)
         if InvMsg.reactions[0].count <= 1:
@@ -96,12 +97,42 @@ async def run(message, Id):
                 return False
 
         setting = await client.wait_for("reaction_add", check=setCheck)
+        await OptMsg.clear_reaction("🇦")
+        await OptMsg.clear_reaction("🇧")
         if client.elimination:
-            await channel.send(embed=discord.Embed(title="You are playing by elimination", color=discord.Colour.blue()))
+            await OptMsg.edit(embed=discord.Embed(title="You are playing by elimination", color=discord.Colour.blue()))
         else:
-            await channel.send(
+            await OptMsg.edit(
                 embed=discord.Embed(title="You are playing with score deductions", color=discord.Colour.blue()))
+        
+        await channel.send(embed=discord.Embed(
+            title="Would you like questions to be randomized?",
+            color=discord.Colour.blue()))
+        RandQ = await channel.history().get(author__name=botname)
+        await RandQ.add_reaction("✔️")
+        await RandQ.add_reaction("❌")
+        # Function for checking for reaction given
+        def randCheck(rxn, user):
+            if rxn.emoji in ["✔️", "❌"] and user.name in client.players.keys():
+                if rxn.emoji == "✔️":
+                    random.shuffle(questions)
+                    client.shuffle = True
+                else:
+                    client.shuffle = False
+                return True
+            else:
+                return False
+        setting = await client.wait_for("reaction_add", check=randCheck)
+        await RandQ.clear_reaction("✔️")
+        await RandQ.clear_reaction("❌")
+        if client.shuffle:
+            await RandQ.edit(embed=discord.Embed(title="Questions have been shuffled", color=discord.Colour.blue()))
+        else:
+            await RandQ.edit(
+                embed=discord.Embed(title="Question order maintained", color=discord.Colour.blue()))
+        
         await channel.send(embed=discord.Embed(title="Starting", color=discord.Colour.green()))
+        Qnum = 1
         for iteration, row in enumerate(questions):
             if len(list(client.players.keys())) == 1 and client.elimination:
                 await channel.send(
@@ -121,6 +152,8 @@ async def run(message, Id):
                     row[i] = False
             for i in range(0, row.count(False)):
                 row.remove(False)
+            row[0] = str(Qnum)
+            Qnum += 1
             print(row)
 
             def check(rxn, user):
@@ -213,7 +246,8 @@ async def run(message, Id):
                 client.players = {}
                 break
     except:
-        await channel.send("Invalid Quiz Code Given or Invalid Quiz Set")
+        await channel.send(embed = discord.Embed(title="Invalid Quiz Code Given or Invalid Quiz Set",
+                                                 color = discord.Colour.red()))
 
 
 @client.command()
@@ -563,8 +597,11 @@ async def myQuiz(ctx):
     )
     docs = client.quiz.find({"name": str(author.id)})
     for doc in docs:
+        privacySetting = ""
+        if doc["privacy"] == "private":
+            privacySetting = " (private)"
         code = doc["_id"]
-        name = doc["quizName"]
+        name = doc["quizName"] + privacySetting 
         embed.add_field(name=code, value=name, inline=False)
     await author.send(embed=embed)
 
