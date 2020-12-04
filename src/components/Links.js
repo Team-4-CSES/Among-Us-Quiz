@@ -22,7 +22,7 @@ const Links = (props) => {
       </Link>
       <Collapse>
         <List>
-          <Item>
+          {/* <Item>
             <Link to="/quizzes/list" className="nav-link">
               List Quizzes
             </Link>
@@ -31,7 +31,7 @@ const Links = (props) => {
             <Link to="/quizzes/create" className="nav-link">
               Create Quiz
             </Link>
-          </Item>
+          </Item> */}
         </List>
       </Collapse>
     </React.Fragment>

@@ -73,36 +73,36 @@ const QuizzesList = (props) => {
       },
       {
         Header: "Name",
-        accessor: "name",
+        accessor: "quizName",
         filterable: true,
       },
-      {
-        Header: "Questions",
-        accessor: "questions",
-        Cell: (props) => <span>{props.value.join(" / ")}</span>,
-      },
-      {
-        Header: "",
-        accessor: "",
-        Cell: function (props) {
-          return (
-            <span>
-              <DeleteQuiz id={props.original._id} />
-            </span>
-          );
-        },
-      },
-      {
-        Header: "",
-        accessor: "",
-        Cell: function (props) {
-          return (
-            <span>
-              <UpdateQuiz id={props.original._id} />
-            </span>
-          );
-        },
-      },
+      // {
+      //   Header: "Questions",
+      //   accessor: "questions",
+      //   Cell: (props) => <span>{props.value.join(" / ")}</span>,
+      // },
+      // {
+      //   Header: "",
+      //   accessor: "",
+      //   Cell: function (props) {
+      //     return (
+      //       <span>
+      //         <DeleteQuiz id={props.original._id} />
+      //       </span>
+      //     );
+      //   },
+      // },
+      // {
+      //   Header: "",
+      //   accessor: "",
+      //   Cell: function (props) {
+      //     return (
+      //       <span>
+      //         <UpdateQuiz id={props.original._id} />
+      //       </span>
+      //     );
+      //   },
+      // },
     ]);
   }, 1000);
 
