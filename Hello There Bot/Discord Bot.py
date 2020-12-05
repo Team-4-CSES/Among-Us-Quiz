@@ -163,7 +163,10 @@ async def run(message, Id):
             row = row.split("ȟ̵̢̨̤͕̔͊̓͒ͅ")
             for i in range(0, len(row)):
                 if row[i] == '':
-                    row[i] = False
+                    if i == 2:
+                        row[i] = "None"
+                    else:
+                        row[i] = False
             for i in range(0, row.count(False)):
                 row.remove(False)
             row[0] = str(Qnum)
@@ -305,15 +308,21 @@ async def upload(ctx, filetype):
                         title="Invalid .csv format! Please follow the template and follow the instructions listed. You can find the quiz template at https://docs.google.com/spreadsheets/d/1H1Fg5Lw1hNMRFWkorHuAehRodlmHgKFM8unDjPZMnUg/edit#gid=196296521",
                         colour=discord.Colour.red()))
                     return
-
+                
+                Qnum = 1
                 for row in quiz[6:]:
                     if set(list(row)) == {''}:
                         continue
                     for i in range(0, len(row)):
                         if row[i] == "":
-                            row[i] = False
+                            if i == 2:
+                                row[i] = "None"
+                            else:
+                                row[i] = False
                     for i in range(0, row.count(False)):
                         row.remove(False)
+                    row[0] = str(Qnum)
+                    Qnum += 1
                     embed = discord.Embed(
                         title="Question " + row[0],
                         description=row[1],
@@ -645,13 +654,19 @@ async def delete(ctx, quizcode):
                 embed=discord.Embed(title="You are not authorized to delete this quiz", colour=discord.Colour.red()))
             return
         EmbedList = []
+        Qnum = 1
         for iteration, row in enumerate(questions):
             row = row.split("ȟ̵̢̨̤͕̔͊̓͒ͅ")
             for i in range(0, len(row)):
                 if row[i] == '':
-                    row[i] = False
+                    if i == 2:
+                        row[i] = "None"
+                    else:
+                        row[i] = False
             for i in range(0, row.count(False)):
                 row.remove(False)
+            row[0] = str(Qnum)
+            Qnum += 1
             embed = discord.Embed(
                 title="Question " + row[0],
                 description=row[1],
@@ -923,13 +938,19 @@ async def edit(ctx, quizKey):
             return
         questions = doc["questions"]
         EmbedList = []
+        Qnum = 1
         for iteration, row in enumerate(questions):
             row = row.split("ȟ̵̢̨̤͕̔͊̓͒ͅ")
             for i in range(0, len(row)):
                 if row[i] == '':
-                    row[i] = False
+                    if i == 2:
+                        row[i] = "None"
+                    else:
+                        row[i] = False
             for i in range(0, row.count(False)):
                 row.remove(False)
+            row[0] = str(Qnum)
+            Qnum += 1
             embed = discord.Embed(
                 title="Question " + row[0],
                 description=row[1],
@@ -1046,14 +1067,20 @@ async def edit(ctx, quizKey):
                                 colour=discord.Colour.red()))
                             return
 
+                        Qnum = 1
                         for row in quiz[6:]:
                             if set(list(row)) == {''}:
                                 continue
                             for i in range(0, len(row)):
                                 if row[i] == "":
-                                    row[i] = False
+                                    if i == 2:
+                                        row[i] = "None"
+                                    else:
+                                        row[i] = False
                             for i in range(0, row.count(False)):
                                 row.remove(False)
+                            row[0] = str(Qnum)
+                            Qnum += 1
                             embed = discord.Embed(
                                 title="Question " + row[0],
                                 description=row[1],
