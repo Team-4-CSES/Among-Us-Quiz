@@ -1065,8 +1065,7 @@ async def edit(ctx, quizKey):
                                 reaction.emoji) == '➡️') and reaction.message == embed
 
                         while not doneChecking:
-                            quizCheck = await client.wait_for("reaction_add", check=checkdirection)pending_tasks = [client.wait_for('reaction_add',check=checkdirection),
-                                                                                                                    client.wait_for('reaction_remove',check=checkdirection)]
+                            pending_tasks = [client.wait_for('reaction_add',check=checkdirection), client.wait_for('reaction_remove',check=checkdirection)]
                             done_tasks, pending_tasks = await asyncio.wait(pending_tasks, return_when=asyncio.FIRST_COMPLETED)
                             quizCheck = None
                             for task in done_tasks:
