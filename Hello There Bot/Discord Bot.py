@@ -60,7 +60,6 @@ async def run(message, Id):
         doc = client.quiz.find_one({"_id": Id})
         if doc["privacy"] == "private":
             if doc["name"] != str(message.author.id):
-                await channel.send(embed=discord.Embed(title="You are not authorized to run this quiz.", colour=discord.Colour.red()))
                 return
         questions = doc["questions"]
         answer_dict = {'🇦': "A", '🇧': "B", '🇨': "C", '🇩': "D",
@@ -79,7 +78,7 @@ async def run(message, Id):
                 embed=discord.Embed(title="No players joined.  Ending the game.", color=discord.Colour.red()))
             return
         await channel.send(embed=discord.Embed(
-            title="Press 🇦 to play by elimination (wrong answers get you kicked) or 🇧 for subtraction (wrong answers lead to a score deduction).",
+            title="Press 🇦 to play by elimination (wrong answers get you kicked) or 🇧 to play by subtraction (wrong answers lead to a score deduction).",
             color=discord.Colour.blue()))
         OptMsg = await channel.history().get(author__name=botname)
         await OptMsg.add_reaction("🇦")
@@ -96,7 +95,14 @@ async def run(message, Id):
             else:
                 return False
 
-        setting = await client.wait_for("reaction_add", check=setCheck)
+        setting = None
+        try:           
+            setting = await client.wait_for("reaction_add", check=setCheck, timeout=15)
+        except:
+            await OptMsg.clear_reaction("🇦")
+            await OptMsg.clear_reaction("🇧")
+            await OptMsg.edit(embed=discord.Embed(title="No response given. Ending the quiz.", colour=discord.Colour.red()))
+            return
         await OptMsg.clear_reaction("🇦")
         await OptMsg.clear_reaction("🇧")
         if client.elimination:
@@ -122,7 +128,14 @@ async def run(message, Id):
                 return True
             else:
                 return False
-        setting = await client.wait_for("reaction_add", check=randCheck)
+        setting = None
+        try:
+            setting = await client.wait_for("reaction_add", check=randCheck, timeout=15)
+        except:
+            await RandQ.clear_reaction("✔️")
+            await RandQ.clear_reaction("❌")
+            await RandQ.edit(embed=discord.Embed(title="No response given. Ending the quiz.", colour=discord.Colour.red()))
+            return
         await RandQ.clear_reaction("✔️")
         await RandQ.clear_reaction("❌")
         if client.shuffle:
@@ -385,7 +398,12 @@ async def upload(ctx, filetype):
                         reaction.emoji) == '➡️') and reaction.message == embed
 
                 while not doneChecking:
-                    quizCheck = await client.wait_for("reaction_add", check=checkdirection)
+                    pending_tasks = [client.wait_for('reaction_add',check=checkdirection),
+                                     client.wait_for('reaction_remove',check=checkdirection)]
+                    done_tasks, pending_tasks = await asyncio.wait(pending_tasks, return_when=asyncio.FIRST_COMPLETED)
+                    quizCheck = None
+                    for task in done_tasks:
+                        quizCheck = await task
                     if quizCheck[0].emoji == "⬅️":
                         j -= 1
                         if j < 0:
@@ -661,7 +679,12 @@ async def delete(ctx, quizcode):
         doneChecking = False
 
         while not doneChecking:
-            quizCheck = await client.wait_for("reaction_add", check=checkdirection)
+            pending_tasks = [client.wait_for('reaction_add',check=checkdirection),
+                             client.wait_for('reaction_remove',check=checkdirection)]
+            done_tasks, pending_tasks = await asyncio.wait(pending_tasks, return_when=asyncio.FIRST_COMPLETED)
+            quizCheck = None
+            for task in done_tasks:
+                quizCheck = await task
             if quizCheck[0].emoji == "⬅️":
                 j -= 1
                 if j < 0:
@@ -731,7 +754,7 @@ async def help(ctx):
     embed.add_field(name="!myQuiz", value="Direct messages you the keys and names of the quizzes you uploaded", inline=False)
     embed.add_field(name="!delete QUIZKEY", value="Asks you for confirmation then deletes this QUIZKEY from your bot.")
     embed.add_field(name="!edit QUIZKEY", value="Allows you to edit quizzes that you have created.")
-    embed.add_field(name="Bot Invitation Link", value="https://discord.com/oauth2/authorize?client_id=765746012282683393&scope=bot&permissions=355392")
+    embed.add_field(name="Bot Invitation Link", value="https://bit.ly/2JMrDgA")
     await channel.send(embed=embed)
 
 
@@ -741,11 +764,13 @@ async def edit(ctx, quizKey):
         channel = ctx.channel
         doc = client.quiz.find_one({"_id": quizKey})
         if doc["name"] != str(ctx.author.id):
-            await channel.send(embed=discord.Embed(title="You are not authorized to edit this quiz.", colour=discord.Colour.red()))
+            await channel.send(
+                embed=discord.Embed(title="You are not authorized to edit this quiz.", colour=discord.Colour.red()))
             return
-        await channel.send(embed=discord.Embed(title="You are now editing " + quizKey + ": " + doc["quizName"], color=discord.Colour.green()))
-        privacy = discord.Embed(title="This quiz's privacy is set to " + doc["privacy"], 
-                                description="Are you fine with this?", 
+        await channel.send(embed=discord.Embed(title="You are now editing " + quizKey + ": " + doc["quizName"],
+                                               color=discord.Colour.green()))
+        privacy = discord.Embed(title="This quiz's privacy is set to " + doc["privacy"],
+                                description="Are you fine with this?",
                                 color=discord.Colour.blue())
         await channel.send(embed=privacy)
         msg = await channel.history().get(author__name=botname)
@@ -753,10 +778,11 @@ async def edit(ctx, quizKey):
         await msg.add_reaction("❌")
 
         def setCheck(reaction, user):
-            return user == ctx.author and (str(reaction.emoji) == '✔️' or str(reaction.emoji) == '❌') and reaction.message == msg
+            return user == ctx.author and (
+                        str(reaction.emoji) == '✔️' or str(reaction.emoji) == '❌') and reaction.message == msg
 
         try:
-            setting = await client.wait_for("reaction_add", check=setCheck)
+            setting = await client.wait_for("reaction_add", timeout=10.0, check=setCheck)
             private = ""
             if doc["privacy"] == "private":
                 private = "public"
@@ -770,23 +796,33 @@ async def edit(ctx, quizKey):
                 await msg.add_reaction("✔️")
                 await msg.add_reaction("❌")
                 try:
-                    setting = await client.wait_for("reaction_add", check=setCheck)
+                    setting = await client.wait_for("reaction_add", timeout=10.0, check=setCheck)
                     await msg.clear_reaction("✔️")
                     await msg.clear_reaction("❌")
                     if setting[0].emoji == "✔️":
-                        x = client.quiz.update_one({"_id": quizKey}, 
+                        x = client.quiz.update_one({"_id": quizKey},
                                                    {"$set": {"privacy": private}})
                         await msg.edit(embed=discord.Embed(description="Alright! Changed privacy to " + private + "!",
                                                            color=discord.Colour.green()))
                     else:
                         await msg.edit(embed=discord.Embed(description="Not changing privacy.",
                                                            color=discord.Colour.green()))
-                except:
-                    pass
+                except asyncio.TimeoutError:
+                    await msg.clear_reaction("✔️")
+                    await msg.clear_reaction("❌")
+                    await msg.edit(embed=discord.Embed(
+                        title="You timed out!",
+                        colour=discord.Colour.red()))
+                    return
             else:
                 await msg.edit(embed=discord.Embed(description="Not changing privacy", color=discord.Colour.green()))
-        except:
-            pass
+        except asyncio.TimeoutError:
+            await msg.clear_reaction("✔️")
+            await msg.clear_reaction("❌")
+            await msg.edit(embed=discord.Embed(
+                    title="You timed out!",
+                    colour=discord.Colour.red()))
+            return
         question = discord.Embed(title="The quiz's name is " + doc["quizName"],
                                  description="Would you like to keep this?",
                                  color=discord.Colour.blue())
@@ -801,24 +837,26 @@ async def edit(ctx, quizKey):
             elif message.content == "":
                 return False
             else:
-                return True    
+                return True
 
         try:
-            setting = await client.wait_for("reaction_add", check=setCheck)
+            setting = await client.wait_for("reaction_add", timeout=10.0, check=setCheck)
             await msg.clear_reaction("✔️")
             await msg.clear_reaction("❌")
             if setting[0].emoji == "❌":
-                await msg.edit(embed=discord.Embed(description="Write up what would you like to change the quiz name to.",
-                                                   color=discord.Colour.blue()))
+                await msg.edit(
+                    embed=discord.Embed(description="Write up what would you like to change the quiz name to.",
+                                        color=discord.Colour.blue()))
                 try:
-                    question = await client.wait_for("message", check=validQuestion)
+                    question = await client.wait_for("message", timeout=20.0, check=validQuestion)
                     name = question.content
-                    await msg.edit(embed=discord.Embed(description="Would you like to set the quiz name to "+name+"?",
-                                                       color=discord.Colour.blue()))
+                    await msg.edit(
+                        embed=discord.Embed(description="Would you like to set the quiz name to " + name + "?",
+                                            color=discord.Colour.blue()))
                     await msg.add_reaction("✔️")
                     await msg.add_reaction("❌")
                     try:
-                        rxn = await client.wait_for("reaction_add", check=setCheck)
+                        rxn = await client.wait_for("reaction_add", timeout=20, check=setCheck)
                         await msg.clear_reaction("✔️")
                         await msg.clear_reaction("❌")
                         if rxn[0].emoji == "✔️":
@@ -829,15 +867,28 @@ async def edit(ctx, quizKey):
                         else:
                             await msg.edit(embed=discord.Embed(description="Keeping name as " + doc["quizName"] + ".",
                                                                color=discord.Colour.green()))
-                    except:
-                        pass
-                except:
-                    pass
+                    except asyncio.TimeoutError:
+                        await msg.clear_reaction("✔️")
+                        await msg.clear_reaction("❌")
+                        await msg.edit(embed=discord.Embed(
+                            title="You timed out!",
+                            colour=discord.Colour.red()))
+                        return
+                except asyncio.TimeoutError:
+                    await msg.edit(embed=discord.Embed(
+                        title="You timed out!",
+                        colour=discord.Colour.red()))
+                    return
             else:
                 await msg.edit(embed=discord.Embed(description="Keeping name as " + doc["quizName"] + ".",
                                                    color=discord.Colour.green()))
-        except:
-            pass
+        except asyncio.TimeoutError:
+            await msg.clear_reaction("✔️")
+            await msg.clear_reaction("❌")
+            await msg.edit(embed=discord.Embed(
+                title="You timed out!",
+                colour=discord.Colour.red()))
+            return
         questions = doc["questions"]
         EmbedList = []
         for iteration, row in enumerate(questions):
@@ -872,11 +923,14 @@ async def edit(ctx, quizKey):
         def checkdirection(reaction, user):
             return user == ctx.author and str(reaction.emoji) == '✔️' or str(reaction.emoji) == '⬅️' or str(
                 reaction.emoji) == '➡️'
+
         j = 0
         await channel.send(embed=EmbedList[j])
         msg = await channel.history().get(author__name=botname)
         await channel.send(
-            embed=discord.Embed(description="These are the questions this quiz has. Navigate using the arrow keys and click the check mark when you're done checking.", colour=discord.Colour.light_gray()))
+            embed=discord.Embed(
+                description="These are the questions this quiz has. Navigate using the arrow keys and click the check mark when you're done checking.",
+                colour=discord.Colour.light_gray()))
         await msg.add_reaction("⬅️")
         await msg.add_reaction("➡️")
         await msg.add_reaction("✔️")
@@ -884,7 +938,12 @@ async def edit(ctx, quizKey):
         doneChecking = False
 
         while not doneChecking:
-            quizCheck = await client.wait_for("reaction_add", check=checkdirection)
+            pending_tasks = [client.wait_for('reaction_add',check=checkdirection),
+                             client.wait_for('reaction_remove',check=checkdirection)]
+            done_tasks, pending_tasks = await asyncio.wait(pending_tasks, return_when=asyncio.FIRST_COMPLETED)
+            quizCheck = None
+            for task in done_tasks:
+                quizCheck = await task
             if quizCheck[0].emoji == "⬅️":
                 j -= 1
                 if j < 0:
@@ -897,26 +956,28 @@ async def edit(ctx, quizKey):
                 await msg.edit(embed=EmbedList[j])
             if quizCheck[0].emoji == "✔️":
                 doneChecking = True
-        await msg.delete()        
-        msg = await channel.history().get(author__name=botname)        
-        await msg.edit(embed=discord.Embed(description="Are you fine with these questions?", colour=discord.Colour.orange()))
+        await msg.delete()
+        msg = await channel.history().get(author__name=botname)
+        await msg.edit(
+            embed=discord.Embed(description="Are you fine with these questions?", colour=discord.Colour.orange()))
         await msg.add_reaction("✔️")
         await msg.add_reaction("❌")
         try:
-            setting = await client.wait_for("reaction_add", check=setCheck)
+            setting = await client.wait_for("reaction_add", timeout=10.0, check=setCheck)
             await msg.clear_reaction("✔️")
             await msg.clear_reaction("❌")
             if setting[0].emoji == "❌":
-                await msg.edit(embed=discord.Embed(description="Please upload the csv of this updated quiz", colour=discord.Colour.orange()))
+                await msg.edit(embed=discord.Embed(description="Please upload the csv of this updated quiz",
+                                                   colour=discord.Colour.orange()))
 
                 def check(message):
                     return message.attachments[0].filename.endswith('.csv') and message.author == ctx.author
 
                 try:
-                    message = await client.wait_for('message', check=check)
+                    message = await client.wait_for('message', timeout=15.0, check=check)
                     await msg.delete()
                     file = message.attachments
-        
+
                     if len(file) > 0 and file[0].filename.endswith('.csv'):
                         quiz = requests.get(file[0].url).content.decode("utf-8")
                         quiz = quiz.split("\n")
@@ -929,7 +990,7 @@ async def edit(ctx, quizKey):
                                 title="Invalid .csv format! Please follow the template and follow the instructions listed. You can find the quiz template at https://docs.google.com/spreadsheets/d/1H1Fg5Lw1hNMRFWkorHuAehRodlmHgKFM8unDjPZMnUg/edit#gid=196296521",
                                 colour=discord.Colour.red()))
                             return
-        
+
                         for row in quiz[6:]:
                             if set(list(row)) == {''}:
                                 continue
@@ -941,7 +1002,7 @@ async def edit(ctx, quizKey):
                             embed = discord.Embed(
                                 title="Question " + row[0],
                                 description=row[1],
-        
+
                                 colour=discord.Colour.blue()
                             )
                             if row[2] != "None":
@@ -954,7 +1015,7 @@ async def edit(ctx, quizKey):
                                     row[5 + i] = "True"
                                 elif row[5 + i] == "FALSE":
                                     row[5 + i] = "False"
-        
+
                                 # checks if you have a correct answer choice
                                 validanswerchoice = False
                                 if row[3].islower():
@@ -973,18 +1034,18 @@ async def edit(ctx, quizKey):
                                     embed.add_field(name=e, value=row[5 + i] + " (answer)")
                                 else:
                                     embed.add_field(name=e, value=row[5 + i])
-        
+
                                 # checks if time is valid
-        
+
                                 if not row[4].isdigit():
                                     await channel.send(
                                         "Question " + row[0] + " does not have a valid time! (\"" + row[
                                             4] + "\")")
                                     return
-        
+
                             embed.set_footer(text="You have " + row[4] + " seconds")
                             EmbedList.append(embed)
-        
+
                         j = 0
                         await channel.send(embed=EmbedList[j])
                         embed = await channel.history().get(author__name=botname)
@@ -992,16 +1053,24 @@ async def edit(ctx, quizKey):
                         await embed.add_reaction("➡️")
                         await embed.add_reaction("✔️")
                         await channel.send(
-                            embed=discord.Embed(title="These are the new questions you made. Please navigate through them using the arrow keys. Press the checkmark reaction once you're done checking", colour=discord.Colour.dark_magenta()))
+                            embed=discord.Embed(
+                                title="These are the new questions you made. Please navigate through them using the arrow keys. Press the checkmark reaction once you're done checking",
+                                colour=discord.Colour.dark_magenta()))
                         msg = await channel.history().get(author__name=botname)
                         doneChecking = False
-        
+
                         def checkdirection(reaction, user):
-                            return (user == message.author and str(reaction.emoji) == '✔️' or str(reaction.emoji) == '⬅️' or str(
+                            return (user == message.author and str(reaction.emoji) == '✔️' or str(
+                                reaction.emoji) == '⬅️' or str(
                                 reaction.emoji) == '➡️') and reaction.message == embed
-        
+
                         while not doneChecking:
-                            quizCheck = await client.wait_for("reaction_add", check=checkdirection)
+                            quizCheck = await client.wait_for("reaction_add", check=checkdirection)pending_tasks = [client.wait_for('reaction_add',check=checkdirection),
+                                                                                                                    client.wait_for('reaction_remove',check=checkdirection)]
+                            done_tasks, pending_tasks = await asyncio.wait(pending_tasks, return_when=asyncio.FIRST_COMPLETED)
+                            quizCheck = None
+                            for task in done_tasks:
+                                quizCheck = await task
                             if quizCheck[0].emoji == "⬅️":
                                 j -= 1
                                 if j < 0:
@@ -1015,15 +1084,17 @@ async def edit(ctx, quizKey):
                             if quizCheck[0].emoji == "✔️":
                                 doneChecking = True
                     await embed.delete()
-                    await msg.edit(embed=discord.Embed(title="Is this the updated quiz set you wish to create?", colour=discord.Colour.purple()))
+                    await msg.edit(embed=discord.Embed(title="Is this the updated quiz set you wish to create?",
+                                                       colour=discord.Colour.purple()))
                     await msg.add_reaction("✔️")
                     await msg.add_reaction("❌")
                     try:
-                        setting = await client.wait_for("reaction_add", check=setCheck)
+                        setting = await client.wait_for("reaction_add", timeout=10.0, check=setCheck)
                         await msg.clear_reaction("✔️")
                         await msg.clear_reaction("❌")
                         if setting[0].emoji == "❌":
-                            await msg.edit(embed=discord.Embed(description="Keeping the questions same", colour=discord.Colour.green()))
+                            await msg.edit(embed=discord.Embed(description="Keeping the questions same",
+                                                               colour=discord.Colour.green()))
                         else:
                             quiz = requests.get(file[0].url).content.decode("utf-8")
                             quiz = quiz.split("\n")
@@ -1036,19 +1107,34 @@ async def edit(ctx, quizKey):
                                 y = 'ȟ̵̢̨̤͕̔͊̓͒ͅ'.join(row)
                                 x = client.quiz.update_one({"_id": quizKey},
                                                            {'$addToSet': {"questions": y}})
-                            await msg.edit(embed=discord.Embed(description="Questions have been successfully updated", colour=discord.Colour.green()))
-                    except:
-                        print("Last step come on")
-                except:
-                    print("Literally re-doing the upload function did not work go figure.")
+                            await msg.edit(embed=discord.Embed(description="Questions have been successfully updated",
+                                                               colour=discord.Colour.green()))
+                    except asyncio.TimeoutError:
+                        await msg.clear_reaction("✔️")
+                        await msg.clear_reaction("❌")
+                        await msg.edit(embed=discord.Embed(
+                            title="You timed out!",
+                            colour=discord.Colour.red()))
+                        return
+                except asyncio.TimeoutError:
+                    await msg.edit(embed=discord.Embed(
+                        title="You timed out!",
+                        colour=discord.Colour.red()))
+                    return
             else:
-                await msg.edit(embed=discord.Embed(description="Keeping the questions same", colour=discord.Colour.green()))
-        except:
-            print("Literally re-doing the upload function did not work go figure.")
+                await msg.edit(
+                    embed=discord.Embed(description="Keeping the questions same", colour=discord.Colour.green()))
+        except asyncio.TimeoutError:
+            await msg.clear_reaction("✔️")
+            await msg.clear_reaction("❌")
+            await msg.edit(embed=discord.Embed(
+                title="You timed out!",
+                colour=discord.Colour.red()))
+            return
         await channel.send(embed=discord.Embed(title="Finished editing", color=discord.Colour.green()))
     except:
         await ctx.channel.send(
-            embed=discord.Embed(title="Invalid code entered!", colour=discord.Colour.red()))    
+            embed=discord.Embed(title="Invalid code entered!", colour=discord.Colour.red()))
 
 
 keep_alive.keep_alive()
