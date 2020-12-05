@@ -43,7 +43,7 @@ botname = tokenIn.readline().rstrip()
 @client.event
 async def on_ready():
     print("Bot is Ready")
-    await client.change_presence(activity=discord.Game("!help | <insert url here>"))
+    await client.change_presence(activity=discord.Game("!help for more info"))
 
 @client.event
 async def on_reaction_add(rxn, user):
@@ -322,24 +322,13 @@ async def upload(ctx, filetype):
                     )
                     if row[2] != "None":
                         # checks if the image link works
-                        if "cdn" in row[2]:
-                            types = [".jpg", ".jpeg", ".png", ".gif"]
-                            if not any(x in row[2] for x in types):
-                                await channel.send(embed=discord.Embed(
-                                    title="Invalid image URL for question " + row[
-                                        0] + "! Please double check that you inputted a proper image URL (Right-click, \"copy image address\", paste).",
-                                    colour=discord.Colour.red()))
-                                return
-
-                        else:
-                            r = urllib.request.urlopen(row[2])
-                            if r.headers.get_content_maintype() != "image":
-                                await channel.send(embed=discord.Embed(
-                                    title="Invalid image URL for question " + row[
-                                        0] + "! Please double check that you inputted a proper image URL (Right-click, \"copy image address\", paste).",
-                                    colour=discord.Colour.red()))
-                                return
-
+                        types = [".jpg", ".jpeg", ".png", ".gif"]
+                        if not any(x in row[2] for x in types):
+                            await channel.send(embed=discord.Embed(
+                                title="Invalid image URL for question " + row[
+                                    0] + "! Please double check that you inputted a proper image URL (Right-click, \"copy image address\", paste).",
+                                colour=discord.Colour.red()))
+                            return
                         embed.set_image(url=row[2])
                     # await channel.send(row[2])
                     ANSWERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
