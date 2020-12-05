@@ -23,6 +23,9 @@ import requests
 import keep_alive
 nest_asyncio.apply()
 
+intents = discord.Intents.default()
+intents.reactions = True
+
 tokenIn = open("Token Key.txt", "r+")
 token = tokenIn.readline().rstrip()
 
@@ -42,16 +45,14 @@ async def on_ready():
     print("Bot is Ready")
     await client.change_presence(activity=discord.Game("!help | <insert url here>"))
 
-
 @client.event
 async def on_reaction_add(rxn, user):
     message = rxn.message
     channel = message.channel
 
-    LastMsg = await channel.history().get(author__name=botname)
-    if rxn.emoji == "✔️" and user.name != botname and message.author.name == botname and LastMsg == message:
+    LastMsg = await channel.history().find(lambda m: str(m.author.id) == botname)
+    if rxn.emoji == "✔️" and str(user.id) != botname and str(message.author.id) == botname and LastMsg == message:
         client.players[user.name] = 0
-
 
 @client.command()
 async def run(message, Id):
@@ -69,10 +70,10 @@ async def run(message, Id):
         await channel.send(
             embed=discord.Embed(title="You have 10 seconds to react to the reaction below and join the game.",
                                 color=discord.Colour.blue()))
-        InvMsg = await channel.history().get(author__name=botname)
+        InvMsg = await channel.history().find(lambda m: str(m.author.id) == botname)
         await InvMsg.add_reaction("✔️")
         time.sleep(10)
-        InvMsg = await channel.history().get(author__name=botname)
+        InvMsg = await channel.history().find(lambda m: str(m.author.id) == botname)
         if InvMsg.reactions[0].count <= 1:
             await channel.send(
                 embed=discord.Embed(title="No players joined.  Ending the game.", color=discord.Colour.red()))
@@ -80,7 +81,7 @@ async def run(message, Id):
         await channel.send(embed=discord.Embed(
             title="Press 🇦 to play by elimination (wrong answers get you kicked) or 🇧 to play by subtraction (wrong answers lead to a score deduction).",
             color=discord.Colour.blue()))
-        OptMsg = await channel.history().get(author__name=botname)
+        OptMsg = await channel.history().find(lambda m: str(m.author.id) == botname)
         await OptMsg.add_reaction("🇦")
         await OptMsg.add_reaction("🇧")
 
@@ -114,7 +115,7 @@ async def run(message, Id):
         await channel.send(embed=discord.Embed(
             title="Would you like questions to be randomized?",
             color=discord.Colour.blue()))
-        RandQ = await channel.history().get(author__name=botname)
+        RandQ = await channel.history().find(lambda m: str(m.author.id) == botname)
         await RandQ.add_reaction("✔️")
         await RandQ.add_reaction("❌")
         # Function for checking for reaction given
@@ -174,7 +175,7 @@ async def run(message, Id):
                 if len(message.embeds) == 0:
                     print("No embeds")
                     return False
-                if user.name != botname and user.name in client.players.keys() and message.embeds[0].title == "Question " + str(row[0]):
+                if user.id != botname and user.name in client.players.keys() and message.embeds[0].title == "Question " + str(row[0]):
                     return True
                 else:
                     return False
@@ -193,7 +194,7 @@ async def run(message, Id):
                 # await channel.send(row[2])
             emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯']
             await channel.send(embed=embed)
-            msg = await channel.history().get(author__name=botname)
+            msg = await channel.history().find(lambda m: str(m.author.id) == botname)
             for emoji in emojis[:len(row[5:])]:
                 await msg.add_reaction(emoji)
             time.sleep(1.5)
@@ -381,7 +382,7 @@ async def upload(ctx, filetype):
 
                 j = 0
                 await channel.send(embed=EmbedList[j])
-                embed = await channel.history().get(author__name=botname)
+                embed = await channel.history().find(lambda m: str(m.author.id) == botname)
                 await embed.add_reaction("⬅️")
                 await embed.add_reaction("➡️")
                 await embed.add_reaction("✔️")
@@ -389,34 +390,54 @@ async def upload(ctx, filetype):
                     embed=discord.Embed(
                         title="These are the questions you made. Please navigate through them using the arrow keys. Press the checkmark reaction once you're done checking",
                         colour=discord.Colour.dark_magenta()))
-                msg = await channel.history().get(author__name=botname)
+                msg = await channel.history().find(lambda m: str(m.author.id) == botname)
                 doneChecking = False
 
                 def checkdirection(reaction, user):
-                    return (user == message.author and str(reaction.emoji) == '✔️' or str(
+                    return (user == message.author and (str(reaction.emoji) == '✔️' or str(
                         reaction.emoji) == '⬅️' or str(
-                        reaction.emoji) == '➡️') and reaction.message == embed
+                        reaction.emoji) == '➡️')) and reaction.message == embed        
 
+                def checkRemoveDirection(payload):
+                    guild = client.get_guild(payload.guild_id)
+                    reaction = payload.emoji.name
+                    return (payload.user_id == ctx.author.id and (str(reaction) == '✔️' or str(
+                        reaction) == '⬅️' or str(
+                        reaction) == '➡️')) and payload.message_id == embed.id
+                            
                 while not doneChecking:
-                    pending_tasks = [client.wait_for('reaction_add',check=checkdirection),
-                                     client.wait_for('reaction_remove',check=checkdirection)]
+                    pending_tasks = [client.wait_for('raw_reaction_remove',check=checkRemoveDirection), client.wait_for('reaction_add',check=checkdirection)]
                     done_tasks, pending_tasks = await asyncio.wait(pending_tasks, return_when=asyncio.FIRST_COMPLETED)
                     quizCheck = None
                     for task in done_tasks:
                         quizCheck = await task
-                    if quizCheck[0].emoji == "⬅️":
-                        j -= 1
-                        if j < 0:
-                            j = len(EmbedList) - 1
-                        await embed.edit(embed=EmbedList[j])
-                    if quizCheck[0].emoji == "➡️":
-                        j += 1
-                        if j > len(EmbedList) - 1:
-                            j = 0
-                        await embed.edit(embed=EmbedList[j])
-                    if quizCheck[0].emoji == "✔️":
-                        doneChecking = True
-                        await embed.delete()
+                    try:
+                        if quizCheck[0].emoji == "⬅️":
+                            j -= 1
+                            if j < 0:
+                                j = len(EmbedList) - 1
+                            await embed.edit(embed=EmbedList[j])
+                        if quizCheck[0].emoji == "➡️":
+                            j += 1
+                            if j > len(EmbedList) - 1:
+                                j = 0
+                            await embed.edit(embed=EmbedList[j])
+                        if quizCheck[0].emoji == "✔️":
+                            doneChecking = True
+                    except:
+                        if quizCheck.emoji.name == "⬅️":
+                            j -= 1
+                            if j < 0:
+                                j = len(EmbedList) - 1
+                            await embed.edit(embed=EmbedList[j])
+                        if quizCheck.emoji.name == "➡️":
+                            j += 1
+                            if j > len(EmbedList) - 1:
+                                j = 0
+                            await embed.edit(embed=EmbedList[j])
+                        if quizCheck.emoji.name == "✔️":
+                            doneChecking = True
+            await embed.delete()
             await msg.edit(
                 embed=discord.Embed(title="Is this the quiz set you wish to create?", colour=discord.Colour.purple()))
             await msg.add_reaction("✔️")
@@ -663,42 +684,64 @@ async def delete(ctx, quizcode):
                     embed.add_field(name=e, value=row[5 + i])
             embed.set_footer(text="You have " + row[4] + " seconds")
             EmbedList.append(embed)
-
-        def checkdirection(reaction, user):
-            return user == ctx.author and str(reaction.emoji) == '✔️' or str(reaction.emoji) == '⬅️' or str(
-                reaction.emoji) == '➡️'
+        
         j = 0
         await channel.send(embed=EmbedList[j])
-        msg = await channel.history().get(author__name=botname)
+        msg = await channel.history().find(lambda m: str(m.author.id) == botname)
         await channel.send(
             embed=discord.Embed(title="Verify that this is the correct quiz. Navigate using the arrow keys and click the check mark when you're done checking.", colour=discord.Colour.light_gray()))
         await msg.add_reaction("⬅️")
         await msg.add_reaction("➡️")
         await msg.add_reaction("✔️")
 
+        def checkdirection(reaction, user):
+            return user == ctx.author and (str(reaction.emoji) == '✔️' or str(reaction.emoji) == '⬅️' or str(
+                reaction.emoji) == '➡️')
+        
+        def checkRemoveDirection(payload):
+            guild = client.get_guild(payload.guild_id)
+            channel = guild.get_channel(payload.channel_id)
+            reaction = payload.emoji.name
+            return (payload.user_id == ctx.author.id and (str(reaction) == '✔️' or str(
+                reaction) == '⬅️' or str(
+                reaction) == '➡️')) and msg.id == payload.message_id        
+
         doneChecking = False
 
         while not doneChecking:
-            pending_tasks = [client.wait_for('reaction_add',check=checkdirection),
-                             client.wait_for('reaction_remove',check=checkdirection)]
+            pending_tasks = [client.wait_for('raw_reaction_remove',check=checkRemoveDirection), client.wait_for('reaction_add',check=checkdirection)]
             done_tasks, pending_tasks = await asyncio.wait(pending_tasks, return_when=asyncio.FIRST_COMPLETED)
             quizCheck = None
             for task in done_tasks:
                 quizCheck = await task
-            if quizCheck[0].emoji == "⬅️":
-                j -= 1
-                if j < 0:
-                    j = len(EmbedList) - 1
-                await msg.edit(embed=EmbedList[j])
-            if quizCheck[0].emoji == "➡️":
-                j += 1
-                if j > len(EmbedList) - 1:
-                    j = 0
-                await msg.edit(embed=EmbedList[j])
-            if quizCheck[0].emoji == "✔️":
-                doneChecking = True
+            try:
+                if quizCheck[0].emoji == "⬅️":
+                    j -= 1
+                    if j < 0:
+                        j = len(EmbedList) - 1
+                    await msg.edit(embed=EmbedList[j])
+                if quizCheck[0].emoji == "➡️":
+                    j += 1
+                    if j > len(EmbedList) - 1:
+                        j = 0
+                    await msg.edit(embed=EmbedList[j])
+                if quizCheck[0].emoji == "✔️":
+                    doneChecking = True
+            except:
+                if quizCheck.emoji.name == "⬅️":
+                    j -= 1
+                    if j < 0:
+                        j = len(EmbedList) - 1
+                    await msg.edit(embed=EmbedList[j])
+                if quizCheck.emoji.name == "➡️":
+                    j += 1
+                    if j > len(EmbedList) - 1:
+                        j = 0
+                    await msg.edit(embed=EmbedList[j])
+                if quizCheck.emoji.name == "✔️":
+                    doneChecking = True
         await msg.delete()        
-        msg = await channel.history().get(author__name=botname)
+        msg = await channel.history().find(lambda m: str(m.author.id) == botname)
         await msg.edit(embed=discord.Embed(title="Is this the quiz set you wish to delete?", colour=discord.Colour.orange()))
         await msg.add_reaction("✔️")
         await msg.add_reaction("❌")        
@@ -773,7 +816,7 @@ async def edit(ctx, quizKey):
                                 description="Are you fine with this?",
                                 color=discord.Colour.blue())
         await channel.send(embed=privacy)
-        msg = await channel.history().get(author__name=botname)
+        msg = await channel.history().find(lambda m: str(m.author.id) == botname)
         await msg.add_reaction("✔️")
         await msg.add_reaction("❌")
 
@@ -827,7 +870,7 @@ async def edit(ctx, quizKey):
                                  description="Would you like to keep this?",
                                  color=discord.Colour.blue())
         await channel.send(embed=question)
-        msg = await channel.history().get(author__name=botname)
+        msg = await channel.history().find(lambda m: str(m.author.id) == botname)
         await msg.add_reaction("✔️")
         await msg.add_reaction("❌")
 
@@ -919,14 +962,10 @@ async def edit(ctx, quizKey):
                     embed.add_field(name=e, value=row[5 + i])
             embed.set_footer(text="You have " + row[4] + " seconds")
             EmbedList.append(embed)
-
-        def checkdirection(reaction, user):
-            return user == ctx.author and str(reaction.emoji) == '✔️' or str(reaction.emoji) == '⬅️' or str(
-                reaction.emoji) == '➡️'
-
+        
         j = 0
         await channel.send(embed=EmbedList[j])
-        msg = await channel.history().get(author__name=botname)
+        msg = await channel.history().find(lambda m: str(m.author.id) == botname)
         await channel.send(
             embed=discord.Embed(
                 description="These are the questions this quiz has. Navigate using the arrow keys and click the check mark when you're done checking.",
@@ -935,29 +974,56 @@ async def edit(ctx, quizKey):
         await msg.add_reaction("➡️")
         await msg.add_reaction("✔️")
 
+        def checkdirection(reaction, user):
+            print("hello")
+            print(reaction, user)
+            return user == ctx.author and (str(reaction.emoji) == '✔️' or str(reaction.emoji) == '⬅️' or str(
+                reaction.emoji) == '➡️')
+
+        def checkRemoveDirection(payload):
+            guild = client.get_guild(payload.guild_id)
+            channel = guild.get_channel(payload.channel_id)
+            reaction = payload.emoji.name
+            return (payload.user_id == ctx.author.id and (str(reaction) == '✔️' or str(
+                reaction) == '⬅️' or str(
+                reaction) == '➡️')) and payload.message_id == msg.id
+    
         doneChecking = False
 
         while not doneChecking:
-            pending_tasks = [client.wait_for('reaction_add',check=checkdirection),
-                             client.wait_for('reaction_remove',check=checkdirection)]
+            pending_tasks = [client.wait_for('raw_reaction_remove',check=checkRemoveDirection), client.wait_for('reaction_add',check=checkdirection)]
             done_tasks, pending_tasks = await asyncio.wait(pending_tasks, return_when=asyncio.FIRST_COMPLETED)
             quizCheck = None
             for task in done_tasks:
                 quizCheck = await task
-            if quizCheck[0].emoji == "⬅️":
-                j -= 1
-                if j < 0:
-                    j = len(EmbedList) - 1
-                await msg.edit(embed=EmbedList[j])
-            if quizCheck[0].emoji == "➡️":
-                j += 1
-                if j > len(EmbedList) - 1:
-                    j = 0
-                await msg.edit(embed=EmbedList[j])
-            if quizCheck[0].emoji == "✔️":
-                doneChecking = True
+            try:
+                if quizCheck[0].emoji == "⬅️":
+                    j -= 1
+                    if j < 0:
+                        j = len(EmbedList) - 1
+                    await msg.edit(embed=EmbedList[j])
+                if quizCheck[0].emoji == "➡️":
+                    j += 1
+                    if j > len(EmbedList) - 1:
+                        j = 0
+                    await msg.edit(embed=EmbedList[j])
+                if quizCheck[0].emoji == "✔️":
+                    doneChecking = True
+            except:
+                if quizCheck.emoji.name == "⬅️":
+                    j -= 1
+                    if j < 0:
+                        j = len(EmbedList) - 1
+                    await msg.edit(embed=EmbedList[j])
+                if quizCheck.emoji.name == "➡️":
+                    j += 1
+                    if j > len(EmbedList) - 1:
+                        j = 0
+                    await msg.edit(embed=EmbedList[j])
+                if quizCheck.emoji.name == "✔️":
+                    doneChecking = True
         await msg.delete()
-        msg = await channel.history().get(author__name=botname)
+        msg = await channel.history().find(lambda m: str(m.author.id) == botname)
         await msg.edit(
             embed=discord.Embed(description="Are you fine with these questions?", colour=discord.Colour.orange()))
         await msg.add_reaction("✔️")
@@ -1048,7 +1114,7 @@ async def edit(ctx, quizKey):
 
                         j = 0
                         await channel.send(embed=EmbedList[j])
-                        embed = await channel.history().get(author__name=botname)
+                        embed = await channel.history().find(lambda m: str(m.author.id) == botname)
                         await embed.add_reaction("⬅️")
                         await embed.add_reaction("➡️")
                         await embed.add_reaction("✔️")
@@ -1056,32 +1122,56 @@ async def edit(ctx, quizKey):
                             embed=discord.Embed(
                                 title="These are the new questions you made. Please navigate through them using the arrow keys. Press the checkmark reaction once you're done checking",
                                 colour=discord.Colour.dark_magenta()))
-                        msg = await channel.history().get(author__name=botname)
+                        msg = await channel.history().find(lambda m: str(m.author.id) == botname)
                         doneChecking = False
 
                         def checkdirection(reaction, user):
-                            return (user == message.author and str(reaction.emoji) == '✔️' or str(
+                            print("hello")
+                            print(reaction, user)
+                            return (user == message.author and (str(reaction.emoji) == '✔️' or str(
                                 reaction.emoji) == '⬅️' or str(
-                                reaction.emoji) == '➡️') and reaction.message == embed
+                                reaction.emoji) == '➡️')) and reaction.message == embed
 
+                        def checkRemoveDirection(payload):
+                            guild = client.get_guild(payload.guild_id)
+                            channel = guild.get_channel(payload.channel_id)
+                            reaction = payload.emoji.name
+                            return (payload.user_id == ctx.author.id and (str(reaction) == '✔️' or str(
+                                reaction) == '⬅️' or str(
+                                reaction) == '➡️')) and payload.message_id == msg.id
+                                    
                         while not doneChecking:
-                            pending_tasks = [client.wait_for('reaction_add',check=checkdirection), client.wait_for('reaction_remove',check=checkdirection)]
+                            pending_tasks = [client.wait_for('raw_reaction_remove',check=checkRemoveDirection), client.wait_for('reaction_add',check=checkdirection)]
                             done_tasks, pending_tasks = await asyncio.wait(pending_tasks, return_when=asyncio.FIRST_COMPLETED)
                             quizCheck = None
                             for task in done_tasks:
                                 quizCheck = await task
-                            if quizCheck[0].emoji == "⬅️":
-                                j -= 1
-                                if j < 0:
-                                    j = len(EmbedList) - 1
-                                await embed.edit(embed=EmbedList[j])
-                            if quizCheck[0].emoji == "➡️":
-                                j += 1
-                                if j > len(EmbedList) - 1:
-                                    j = 0
-                                await embed.edit(embed=EmbedList[j])
-                            if quizCheck[0].emoji == "✔️":
-                                doneChecking = True
+                            try:
+                                if quizCheck[0].emoji == "⬅️":
+                                    j -= 1
+                                    if j < 0:
+                                        j = len(EmbedList) - 1
+                                    await embed.edit(embed=EmbedList[j])
+                                if quizCheck[0].emoji == "➡️":
+                                    j += 1
+                                    if j > len(EmbedList) - 1:
+                                        j = 0
+                                    await embed.edit(embed=EmbedList[j])
+                                if quizCheck[0].emoji == "✔️":
+                                    doneChecking = True
+                            except:
+                                if quizCheck.emoji.name == "⬅️":
+                                    j -= 1
+                                    if j < 0:
+                                        j = len(EmbedList) - 1
+                                    await embed.edit(embed=EmbedList[j])
+                                if quizCheck.emoji.name == "➡️":
+                                    j += 1
+                                    if j > len(EmbedList) - 1:
+                                        j = 0
+                                    await embed.edit(embed=EmbedList[j])
+                                if quizCheck.emoji.name == "✔️":
+                                    doneChecking = True
                     await embed.delete()
                     await msg.edit(embed=discord.Embed(title="Is this the updated quiz set you wish to create?",
                                                        colour=discord.Colour.purple()))
@@ -1133,7 +1223,7 @@ async def edit(ctx, quizKey):
         await channel.send(embed=discord.Embed(title="Finished editing", color=discord.Colour.green()))
     except:
         await ctx.channel.send(
-            embed=discord.Embed(title="Invalid code entered!", colour=discord.Colour.red()))
+            embed=discord.Embed(title="Invalid code or input entered!", colour=discord.Colour.red()))
 
 
 keep_alive.keep_alive()
