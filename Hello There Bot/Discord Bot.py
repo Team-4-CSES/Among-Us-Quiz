@@ -145,7 +145,7 @@ async def run(message, Id):
             await RandQ.edit(
                 embed=discord.Embed(title="Question order maintained", color=discord.Colour.blue()))
         
-        await channel.send(embed=discord.Embed(title="Starting", color=discord.Colour.green()))
+        await channel.send(embed=discord.Embed(title="Starting! Remember to wait for answers to show up before responding.", color=discord.Colour.green()))
         Qnum = 1
         for iteration, row in enumerate(questions):
             if len(list(client.players.keys())) == 1 and client.elimination:
@@ -549,9 +549,6 @@ async def upload(ctx, filetype):
                                             elif privacySetting == "private":
                                                 await author.send(embed=discord.Embed(
                                                     title="Success! Your private quiz set ID is " + unique_quizcode,
-                                                    colour=discord.Colour.green()))
-                                                await author.send(embed=discord.Embed(
-                                                    title="You can also message this bot directly to run quizzes!",
                                                     colour=discord.Colour.green()))
                                         elif nameConfirmation[0].emoji == "❌":
                                             continue
