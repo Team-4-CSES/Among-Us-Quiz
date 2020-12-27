@@ -43,24 +43,25 @@ botname = tokenIn.readline().rstrip()
 @client.event
 async def on_ready():
     print("Bot is Ready")
-    await client.change_presence(activity=discord.Game("+help for more info"))
+    await client.change_presence(activity=discord.Game("+help for more info"))    
 
-@client.event
-async def on_reaction_add(rxn, user):
-    message = rxn.message
-    channel = message.channel
-
-    LastMsg = await channel.history().find(lambda m: str(m.author.id) == botname)
-    if rxn.emoji == "✔️" and str(user.id) != botname and str(message.author.id) == botname and LastMsg == message:
-        client.players[user.name] = 0
 
 @client.command()
 async def run(message, Id):
     channel = message.channel
+    if channel.id in client.players.keys():
+        await channel.send(
+            embed=discord.Embed(title="Quiz already running in this channel! Please allow it to finish or use a different channel.",
+                                color=discord.Colour.red()))
+        return
+    client.players[channel.id] = {}
     try:
         doc = client.quiz.find_one({"_id": Id})
         if doc["privacy"] == "private":
             if doc["name"] != str(message.author.id):
+                client.players.pop(channel.id)
+                await channel.send(
+                embed=discord.Embed(title="You are not authorized to run this quiz", colour=discord.Colour.red()))
                 return
         questions = doc["questions"]
         answer_dict = {'🇦': "A", '🇧': "B", '🇨': "C", '🇩': "D",
@@ -72,9 +73,21 @@ async def run(message, Id):
                                 color=discord.Colour.blue()))
         InvMsg = await channel.history().find(lambda m: str(m.author.id) == botname)
         await InvMsg.add_reaction("✔️")
-        time.sleep(10)
-        InvMsg = await channel.history().find(lambda m: str(m.author.id) == botname)
+        def FalseReaction(rxn, user):
+            message = rxn.message
+            channel = message.channel
+            if rxn.emoji == "✔️" and str(user.id) != botname and str(message.author.id) == botname and InvMsg == message:
+                client.players[channel.id][user.name] = 0
+            return False
+        def AutoFalse(message):
+            return False
+        try:    
+            Adding = await client.wait_for("reaction_add", check=FalseReaction, timeout=10)
+        except:
+            pass
+        InvMsg = await channel.history().find(lambda m: m.id ==  InvMsg.id)
         if InvMsg.reactions[0].count <= 1:
+            client.players.pop(channel.id)
             await channel.send(
                 embed=discord.Embed(title="No players joined.  Ending the game.", color=discord.Colour.red()))
             return
@@ -87,7 +100,7 @@ async def run(message, Id):
 
         # MAKE IT SO THAT ONLY PEOPLE IN THE GAME CAN VOTE
         def setCheck(rxn, user):
-            if rxn.emoji in ["🇦", "🇧"] and user.name in client.players.keys():
+            if rxn.emoji in ["🇦", "🇧"] and user.name in client.players[channel.id].keys():
                 if rxn.emoji == "🇦":
                     client.elimination = True
                 else:
@@ -103,6 +116,7 @@ async def run(message, Id):
             await OptMsg.clear_reaction("🇦")
             await OptMsg.clear_reaction("🇧")
             await OptMsg.edit(embed=discord.Embed(title="No response given. Ending the quiz.", colour=discord.Colour.red()))
+            client.players.pop(channel.id)
             return
         await OptMsg.clear_reaction("🇦")
         await OptMsg.clear_reaction("🇧")
@@ -120,7 +134,7 @@ async def run(message, Id):
         await RandQ.add_reaction("❌")
         # Function for checking for reaction given
         def randCheck(rxn, user):
-            if rxn.emoji in ["✔️", "❌"] and user.name in client.players.keys():
+            if rxn.emoji in ["✔️", "❌"] and user.name in client.players[channel.id].keys():
                 if rxn.emoji == "✔️":
                     random.shuffle(questions)
                     client.shuffle = True
@@ -136,6 +150,7 @@ async def run(message, Id):
             await RandQ.clear_reaction("✔️")
             await RandQ.clear_reaction("❌")
             await RandQ.edit(embed=discord.Embed(title="No response given. Ending the quiz.", colour=discord.Colour.red()))
+            client.players.pop(channel.id)
             return
         await RandQ.clear_reaction("✔️")
         await RandQ.clear_reaction("❌")
@@ -148,16 +163,17 @@ async def run(message, Id):
         await channel.send(embed=discord.Embed(title="Starting! Remember to wait for answers to show up before responding.", color=discord.Colour.green()))
         Qnum = 1
         for iteration, row in enumerate(questions):
-            if len(list(client.players.keys())) == 1 and client.elimination:
+            if len(list(client.players[channel.id].keys())) == 1 and client.elimination:
+                client.players.pop(channel.id)
                 await channel.send(
-                    embed=discord.Embed(title=list(client.players.keys())[0] + " wins for being the last survivor!",
+                    embed=discord.Embed(title=list(client.players[channel.id].keys())[0] + " wins for being the last survivor!",
                                         color=discord.Colour.blue()))
                 podium = discord.Embed(
                     title="Final Podium",
 
                     color=discord.Colour.gold()
                 )
-                podium.add_field(name="🥇", value=list(client.players.keys())[0], inline=False)
+                podium.add_field(name="🥇", value=list(client.players[channel.id].keys())[0], inline=False)
                 await channel.send(embed=podium)
                 break
             row = row.split("ȟ̵̢̨̤͕̔͊̓͒ͅ")
@@ -171,15 +187,6 @@ async def run(message, Id):
                 row.remove(False)
             row[0] = str(Qnum)
             Qnum += 1
-
-            def check(rxn, user):
-                message = rxn.message
-                if len(message.embeds) == 0:
-                    return False
-                if user.id != botname and user.name in client.players.keys() and message.embeds[0].title == "Question " + str(row[0]):
-                    return True
-                else:
-                    return False
 
             def equation(x):
                 return 300 - 300 * (x / (int(row[4]) / 1.5)) ** 2
@@ -198,7 +205,10 @@ async def run(message, Id):
             msg = await channel.history().find(lambda m: str(m.author.id) == botname)
             for emoji in emojis[:len(row[5:])]:
                 await msg.add_reaction(emoji)
-            time.sleep(1.5)
+            try:
+                auto = await client.wait_for("message", check=AutoFalse, timeout=1.5)
+            except:
+                pass
             for i, e in enumerate(emojis[:len(row[5:])]):
                 if row[5 + i] == "TRUE":
                     row[5 + i] = "True"
@@ -207,6 +217,14 @@ async def run(message, Id):
                 embed.add_field(name=e, value=row[5 + i])
             embed.set_footer(text="You have " + row[4] + " seconds")
             await msg.edit(embed=embed)
+            def check(rxn, user):
+                message = rxn.message
+                if len(message.embeds) == 0:
+                    return False
+                if user.id != botname and user.name in client.players[channel.id].keys() and message.id == msg.id:
+                    return True
+                else:
+                    return False
             answer = "Fail"
             t0 = time.perf_counter()
             try:
@@ -222,28 +240,31 @@ async def run(message, Id):
                 if answer[0].emoji in answer_dict.keys() and answer_dict[answer[0].emoji] == row[3]:
                     await channel.send(
                         "Correct!  " + answer[1].name + " will be awarded " + str(int(round(pts, 0))) + " points.")
-                    client.players[answer[1].name] += int(round(pts, 0))
+                    client.players[channel.id][answer[1].name] += int(round(pts, 0))
                 else:
                     await channel.send("WRONG! The correct answer is " + row[3])
                     if client.elimination:
-                        client.players.pop(answer[1].name, None)
+                        client.players[channel.id].pop(answer[1].name, None)
                         await channel.send(answer[1].name + " will be kicked!")
                     else:
-                        client.players[answer[1].name] -= int(round(pts, 0))
+                        client.players[channel.id][answer[1].name] -= int(round(pts, 0))
                         await channel.send(answer[1].name + " will lose " + str(int(round(pts, 0))) + " points!")
-            client.players = dict(sorted(client.players.items(), key=lambda kv: kv[1], reverse=True))
+            client.players[channel.id] = dict(sorted(client.players[channel.id].items(), key=lambda kv: kv[1], reverse=True))
             rankings = discord.Embed(
                 title="Rankings",
 
                 color=discord.Colour.red()
             )
             rank = 1
-            for player in client.players.keys():
-                rankings.add_field(name=str(rank) + ". " + player, value=str(client.players[player]) + " point",
+            for player in client.players[channel.id].keys():
+                rankings.add_field(name=str(rank) + ". " + player, value=str(client.players[channel.id][player]) + " point",
                                    inline=False)
                 rank += 1
             await channel.send(embed=rankings)
-            time.sleep(5)
+            try:
+                auto = await client.wait_for("message", check=AutoFalse, timeout=1.5)
+            except:
+                pass
             if iteration == len(questions) - 1:
                 Final = discord.Embed(
                     title="Final Podium",
@@ -252,13 +273,14 @@ async def run(message, Id):
                 )
                 rank = 1
                 medals = ["🥇", "🥈", "🥉"]
-                for player in list(client.players.keys())[:3]:
+                for player in list(client.players[channel.id].keys())[:3]:
                     Final.add_field(name=medals[rank - 1], value=player, inline=False)
                     rank += 1
                 await channel.send(embed=Final)
-                client.players = {}
+                client.players.pop(channel.id)
                 break
     except:
+        client.players.pop(channel.id)
         await channel.send(embed = discord.Embed(title="Invalid Quiz Code Given or Invalid Quiz Set",
                                                  color = discord.Colour.red()))
 
@@ -542,6 +564,9 @@ async def upload(ctx):
                                                 title="Success! Your quiz set ID is " + unique_quizcode,
                                                 colour=discord.Colour.green()))
                                         elif privacySetting == "private":
+                                            await msg.edit(embed=discord.Embed(
+                                                title="Quiz Key has been sent o your dm",
+                                                colour=discord.Colour.green()))
                                             await author.send(embed=discord.Embed(
                                                 title="Success! Your private quiz set ID is " + unique_quizcode,
                                                 colour=discord.Colour.green()))
