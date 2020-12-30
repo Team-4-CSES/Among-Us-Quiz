@@ -460,7 +460,6 @@ async def upload(ctx):
     
         def checkanswer(reaction, user):
             return user.id == message.author.id and (str(reaction.emoji) == '✔️' or str(reaction.emoji) == '❌')
-    
         try:
             userAnswer = await client.wait_for('reaction_add', timeout=20.0, check=checkanswer)
             if userAnswer[0].emoji == "✔️":
