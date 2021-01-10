@@ -319,7 +319,7 @@ async def upload(ctx):
             EmbedList = []
     
             # checks if you used the template
-            templatecheck = "Question No.,Question,Image URL,Answer,Time,A,B,C,D,E,F,G,H,I,J"
+            templatecheck = "Question No.,Question,Image URL,Answer (letter),Time,A,B,C,D,E,F,G,H,I,J"
             if templatecheck not in ",".join(quiz[5]):
                 await channel.send(embed=discord.Embed(
                     title="Invalid .csv format! Please follow the template and follow the instructions listed. You can find the quiz template at https://docs.google.com/spreadsheets/d/1H1Fg5Lw1hNMRFWkorHuAehRodlmHgKFM8unDjPZMnUg/edit#gid=196296521",
@@ -460,6 +460,7 @@ async def upload(ctx):
     
         def checkanswer(reaction, user):
             return user.id == message.author.id and (str(reaction.emoji) == '✔️' or str(reaction.emoji) == '❌')
+    
         try:
             userAnswer = await client.wait_for('reaction_add', timeout=20.0, check=checkanswer)
             if userAnswer[0].emoji == "✔️":
@@ -814,7 +815,7 @@ async def help(ctx):
     embed.add_field(name="+myQuiz", value="Direct messages you the keys and names of the quizzes you uploaded", inline=False)
     embed.add_field(name="+delete QUIZKEY", value="Asks you for confirmation then deletes this QUIZKEY from your bot.")
     embed.add_field(name="+edit QUIZKEY", value="Allows you to edit quizzes that you have created.")
-    embed.add_field(name="Bot Invitation Link", value="https://bit.ly/2JMrDgA")
+    embed.add_field(name="Bot Invitation Link", value="https://bit.ly/3b0P8hx")
     await channel.send(embed=embed)
 
 
