@@ -815,7 +815,8 @@ async def help(ctx):
     embed.add_field(name="+myQuiz", value="Direct messages you the keys and names of the quizzes you uploaded", inline=False)
     embed.add_field(name="+delete QUIZKEY", value="Asks you for confirmation then deletes this QUIZKEY from your bot.")
     embed.add_field(name="+edit QUIZKEY", value="Allows you to edit quizzes that you have created.")
-    embed.add_field(name="Bot Invitation Link", value="https://bit.ly/3b0P8hx")
+    embed.add_field(name="Bot Invitation Link", value="https://bit.ly/2LsMwi6")
+    embed.add_field(name="Note:", value="Enabling the bot to manage messages, while not strictly required, helps prevent the bot from cluttering your channel history to provide you a more optimized experience.  Every other permission, however, is needed.")
     await channel.send(embed=embed)
 
 
