@@ -49,6 +49,7 @@ async def on_ready():
 @client.command()
 async def run(message, Id):
     channel = message.channel
+    MessageMan = True
     if channel.id in client.players.keys():
         await channel.send(
             embed=discord.Embed(title="Quiz already running in this channel! Please allow it to finish or use a different channel.",
@@ -113,13 +114,19 @@ async def run(message, Id):
         try:           
             setting = await client.wait_for("reaction_add", check=setCheck, timeout=20)
         except:
-            await OptMsg.clear_reaction("🇦")
-            await OptMsg.clear_reaction("🇧")
+            try:
+                await OptMsg.clear_reaction("🇦")
+                await OptMsg.clear_reaction("🇧")
+            except:
+                pass
             await OptMsg.edit(embed=discord.Embed(title="No response given. Ending the quiz.", colour=discord.Colour.red()))
             client.players.pop(channel.id)
             return
-        await OptMsg.clear_reaction("🇦")
-        await OptMsg.clear_reaction("🇧")
+        try:
+            await OptMsg.clear_reaction("🇦")
+            await OptMsg.clear_reaction("🇧")
+        except:
+            MessageMan = False
         if client.elimination:
             await OptMsg.edit(embed=discord.Embed(title="You are playing by elimination", color=discord.Colour.blue()))
         else:
@@ -147,13 +154,15 @@ async def run(message, Id):
         try:
             setting = await client.wait_for("reaction_add", check=randCheck, timeout=20)
         except:
-            await RandQ.clear_reaction("✔️")
-            await RandQ.clear_reaction("❌")
+            if MessageMan:
+                await RandQ.clear_reaction("✔️")
+                await RandQ.clear_reaction("❌")
             await RandQ.edit(embed=discord.Embed(title="No response given. Ending the quiz.", colour=discord.Colour.red()))
             client.players.pop(channel.id)
             return
-        await RandQ.clear_reaction("✔️")
-        await RandQ.clear_reaction("❌")
+        if MessageMan:
+            await RandQ.clear_reaction("✔️")
+            await RandQ.clear_reaction("❌")
         if client.shuffle:
             await RandQ.edit(embed=discord.Embed(title="Questions have been shuffled", color=discord.Colour.blue()))
         else:
@@ -164,7 +173,6 @@ async def run(message, Id):
         Qnum = 1
         for iteration, row in enumerate(questions):
             if len(list(client.players[channel.id].keys())) == 1 and client.elimination:
-                client.players.pop(channel.id)
                 await channel.send(
                     embed=discord.Embed(title=list(client.players[channel.id].keys())[0] + " wins for being the last survivor!",
                                         color=discord.Colour.blue()))
@@ -175,6 +183,7 @@ async def run(message, Id):
                 )
                 podium.add_field(name="🥇", value=list(client.players[channel.id].keys())[0], inline=False)
                 await channel.send(embed=podium)
+                client.players.pop(channel.id)
                 break
             row = row.split("ȟ̵̢̨̤͕̔͊̓͒ͅ")
             for i in range(0, len(row)):
@@ -280,7 +289,8 @@ async def run(message, Id):
                 client.players.pop(channel.id)
                 break
     except:
-        client.players.pop(channel.id)
+        if channel.id in client.players.keys():
+            client.players.pop(channel.id)
         await channel.send(embed = discord.Embed(title="Invalid Quiz Code Given or Invalid Quiz Set",
                                                  color = discord.Colour.red()))
 
@@ -808,15 +818,16 @@ async def help(ctx):
 
         color=discord.Colour.gold()
     )
-    uploadCSV = "This command lets you upload a quiz csv to the database. \n You can find the quiz template at https://docs.google.com/spreadsheets/d/1H1Fg5Lw1hNMRFWkorHuAehRodlmHgKFM8unDjPZMnUg/edit#gid=196296521"
+    uploadCSV = "This command lets you begin the process of uploading a quiz csv to the database. \n You can find the quiz template at https://docs.google.com/spreadsheets/d/1H1Fg5Lw1hNMRFWkorHuAehRodlmHgKFM8unDjPZMnUg/edit#gid=196296521"
     embed.add_field(name="+upload", value=uploadCSV, inline=False)
+    embed.add_field(name="+myQuiz", value="Direct messages you the keys and names of the quizzes you uploaded", inline=False)
     run = "This command searches our database for a quiz of key QUIZKEY.  If QUIZKEY is valid, it will start the quiz."
     embed.add_field(name="+run QUIZKEY", value=run, inline=False)
-    embed.add_field(name="+myQuiz", value="Direct messages you the keys and names of the quizzes you uploaded", inline=False)
     embed.add_field(name="+delete QUIZKEY", value="Asks you for confirmation then deletes this QUIZKEY from your bot.")
     embed.add_field(name="+edit QUIZKEY", value="Allows you to edit quizzes that you have created.")
     embed.add_field(name="Bot Invitation Link", value="https://bit.ly/2LsMwi6")
     embed.add_field(name="Note:", value="Enabling the bot to manage messages, while not strictly required, helps prevent the bot from cluttering your channel history to provide you a more optimized experience.  Every other permission, however, is needed.")
+    embed.add_field(name="Another Note:", value="Only the run, delete, and edit commands require an argument to run properly.  Everything else can be run directly.")
     await channel.send(embed=embed)
 
 
