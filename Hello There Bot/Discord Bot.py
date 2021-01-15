@@ -575,7 +575,7 @@ async def upload(ctx):
                                                 colour=discord.Colour.green()))
                                         elif privacySetting == "private":
                                             await msg.edit(embed=discord.Embed(
-                                                title="Quiz Key has been sent o your dm",
+                                                title="Quiz Key has been sent to your dm",
                                                 colour=discord.Colour.green()))
                                             await author.send(embed=discord.Embed(
                                                 title="Success! Your private quiz set ID is " + unique_quizcode,
@@ -782,29 +782,41 @@ async def delete(ctx, quizcode):
             if userAnswer[0].emoji == "✔️":
                 client.quiz.delete_one({"_id": quizcode})
                 client.quiz.update_one({"_id": "Key"}, {"$pull": {"Codes": quizcode}})
-                await msg.clear_reaction("✔️")
-                await msg.clear_reaction("❌")
-                await msg.edit(embed=discord.Embed(
-                    title="Success! " + quizcode + " has been deleted",
-                    colour=discord.Colour.green()))
-
+                try:
+                    await msg.clear_reaction("✔️")
+                    await msg.clear_reaction("❌")
+                    await msg.edit(embed=discord.Embed(
+                        title="Success! " + quizcode + " has been deleted",
+                        colour=discord.Colour.green()))
+                except:
+                    await msg.edit(embed=discord.Embed(
+                        title="Success! " + quizcode + " has been deleted",
+                        colour=discord.Colour.green()))
             elif userAnswer[0].emoji == "❌":
-
-                await msg.clear_reaction("✔️")
-                await msg.clear_reaction("❌")
-                await msg.edit(embed=discord.Embed(
-                    title="Got it. Your quiz set won't be deleted.",
-                    colour=discord.Colour.green()))
-                return
+                try:
+                    await msg.clear_reaction("✔️")
+                    await msg.clear_reaction("❌")
+                    await msg.edit(embed=discord.Embed(
+                        title="Got it. Your quiz set won't be deleted.",
+                        colour=discord.Colour.green()))
+                    return
+                except:
+                    await msg.edit(embed=discord.Embed(
+                        title="Got it. Your quiz set won't be deleted.",
+                        colour=discord.Colour.green()))
 
         except asyncio.TimeoutError:
-            await msg.clear_reaction("✔️")
-            await msg.clear_reaction("❌")
-            await msg.edit(embed=discord.Embed(
-                title="You timed out!",
-                colour=discord.Colour.red()))
-            return
-
+            try:
+                await msg.clear_reaction("✔️")
+                await msg.clear_reaction("❌")
+                await msg.edit(embed=discord.Embed(
+                    title="You timed out!",
+                    colour=discord.Colour.red()))
+                return
+            except:
+                await msg.edit(embed=discord.Embed(
+                    title="You timed out!",
+                    colour=discord.Colour.red()))
     except:
         await ctx.channel.send(
             embed=discord.Embed(title="Invalid code entered!", colour=discord.Colour.red()))
